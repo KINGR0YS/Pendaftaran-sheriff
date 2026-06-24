@@ -10,6 +10,7 @@ let currentView = 'home';
 let currentUser = null;
 let activeBatch = '1';
 let recruitmentStatus = 'open';
+let allowApplyAccess = false;
 
 // Mock Seed Data (Stored in LocalStorage if Supabase is not connected)
 const DEFAULT_ROSTER = [
@@ -239,11 +240,21 @@ function navigateTo(viewId) {
   }
   
   // Guard registration access if recruitment is closed
-  if (viewId === 'apply' && recruitmentStatus === 'closed') {
-    showToast('Pendaftaran ditutup saat ini!', 'error');
-    window.location.hash = '#home';
-    navigateTo('home');
-    return;
+  if (viewId === 'apply') {
+    if (recruitmentStatus === 'closed') {
+      showToast('Pendaftaran ditutup saat ini!', 'error');
+      window.location.hash = '#home';
+      navigateTo('home');
+      return;
+    }
+    
+    // Guard access: must scroll to bottom of homepage first and click "Gabung Sekarang"
+    if (!allowApplyAccess) {
+      showToast('Silakan gulir halaman utama sampai paling bawah untuk melakukan pendaftaran!', 'warning');
+      window.location.hash = '#home';
+      navigateTo('home');
+      return;
+    }
   }
   
   currentView = viewId;
@@ -270,6 +281,7 @@ function navigateTo(viewId) {
   // Execute view-specific initializations
   if (viewId === 'home') {
     updateRecruitmentStats();
+    allowApplyAccess = false; // Reset to force scroll again
   } else if (viewId === 'admin') {
     switchDashboardTab('stats');
   } else if (viewId === 'apply') {
@@ -279,6 +291,21 @@ function navigateTo(viewId) {
   // Scroll to top
   window.scrollTo(0, 0);
   lucide.createIcons();
+}
+
+function handleBottomApplyClick() {
+  allowApplyAccess = true;
+  navigateTo('apply');
+}
+
+function handleNavApplyClick(e) {
+  e.preventDefault();
+  
+  if (currentView !== 'home') {
+    navigateTo('home');
+  }
+  
+  showToast('Silakan gulir halaman utama sampai paling bawah untuk melakukan pendaftaran!', 'info');
 }
 
 // Update home stats cards
@@ -514,6 +541,7 @@ async function handleFormSubmit(e) {
 function onFormSubmitSuccess() {
   showToast('Pendaftaran Anda berhasil dikirim! Silakan tunggu evaluasi pimpinan.', 'success');
   resetRegistrationForm();
+  allowApplyAccess = false; // Reset access
   setTimeout(() => {
     navigateTo('home');
   }, 1000);
@@ -1534,8 +1562,8 @@ function changeTextScale(scale) {
 }
 
 function changeLayoutWidth(width) {
-  let contentWidth = '1200px';
-  if (width === 'compact') contentWidth = '1000px';
+  let contentWidth = '1400px';
+  if (width === 'compact') contentWidth = '1150px';
   if (width === 'fluid') contentWidth = '95%';
   
   document.documentElement.style.setProperty('--max-content-width', contentWidth);
