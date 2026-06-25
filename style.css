@@ -1025,7 +1025,7 @@ textarea {
 /* Stats Cards Grid */
 .dashboard-stats-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 1.5rem;
   margin-bottom: 2rem;
 }
@@ -1283,6 +1283,11 @@ textarea {
   border-color: var(--color-error);
   color: var(--color-error);
   background-color: var(--color-error-bg);
+}
+.btn-icon.detail:hover {
+  border-color: var(--color-gold);
+  color: var(--color-gold);
+  background-color: rgba(212, 175, 55, 0.05);
 }
 .btn-icon i, .btn-icon svg {
   width: 14px;

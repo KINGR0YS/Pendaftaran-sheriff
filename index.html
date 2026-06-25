@@ -207,7 +207,7 @@
                 <div class="timeline-header">
                   <h3>Formulir Online</h3>
                 </div>
-                <p>Mengisi seluruh data diri OOC, IC, kualifikasi personal, dan esai skenario taktis secara jujur.</p>
+                <p>Mengisi seluruh data diri OOC dan IC, serta menjawab beberapa pertanyaan dan skenario yang telah disediakan dengan jujur.</p>
               </div>
             </div>
             <div class="timeline-item">
@@ -216,25 +216,25 @@
                 <div class="timeline-header">
                   <h3>Evaluasi Berkas</h3>
                 </div>
-                <p>Staf Sheriff akan meninjau kelayakan berkas pendaftaran berupa SKCK, SIM Roxwood, dan Surat Keterangan Sehat.</p>
+                <p>Staff Sheriff akan meninjau kelengkapan dan kelayakan berkas pendaftaran, berupa SKCK, SIM Roxwood, dan Surat Keterangan Sehat.</p>
               </div>
             </div>
             <div class="timeline-item">
               <div class="timeline-badge">3</div>
               <div class="timeline-content">
                 <div class="timeline-header">
-                  <h3>Wawancara & Uji SOP</h3>
+                  <h3>Interview & Uji Pengetahuan</h3>
                 </div>
-                <p>Menghadiri sesi wawancara langsung dan pengujian pemahaman SOP Sheriff secara lisan.</p>
+                <p>Mengikuti sesi wawancara sebagai bagian dari proses seleksi penerimaan anggota Sheriff Roxwood.</p>
               </div>
             </div>
             <div class="timeline-item">
               <div class="timeline-badge">4</div>
               <div class="timeline-content">
                 <div class="timeline-header">
-                  <h3>Masa Percobaan (Cadet)</h3>
+                  <h3>Masa Pelatihan (Probatus)</h3>
                 </div>
-                <p>Diterima resmi, mendapatkan badge callsign, seragam dinas, dan orientasi lapangan oleh atasan.</p>
+                <p>Peserta yang dinyatakan lulus akan menjalani masa pelatihan sebelum resmi bertugas sebagai anggota Sheriff Roxwood.</p>
               </div>
             </div>
           </div>
@@ -247,23 +247,23 @@
           <div class="reqs-list">
             <div class="req-item">
               <i data-lucide="check-square"></i>
-              <p>Berusia minimal 17 tahun (OOC) dan memiliki karakter dengan usia minimal 17 tahun (IC).</p>
+              <p>Berusia minimal 17 tahun (OOC) dan memiliki karakter berusia minimal 17 tahun (IC).</p>
             </div>
             <div class="req-item">
               <i data-lucide="check-square"></i>
-              <p>Memahami dan mengerti aturan kota.</p>
+              <p>Memahami dan mematuhi peraturan kota yang berlaku.</p>
             </div>
             <div class="req-item">
               <i data-lucide="check-square"></i>
-              <p>Aktif dan bertanggung jawab.</p>
+              <p>Aktif, bertanggung jawab, dan mampu bekerja sama dalam tim.</p>
             </div>
             <div class="req-item">
               <i data-lucide="check-square"></i>
-              <p>Bersih dari catatan kriminal berat di kota Kerajaan Roxwood (dibuktikan lewat data kepolisian).</p>
+              <p>Tidak memiliki catatan kriminal berat di Kerajaan Roxwood.</p>
             </div>
             <div class="req-item">
               <i data-lucide="check-square"></i>
-              <p>Disiplin tinggi, sopan, dan berkomitmen penuh untuk aktif menjalankan tugas sebagai Sheriff.</p>
+              <p>Memiliki sikap disiplin, sopan, dan siap menjalankan tugas sebagai Sheriff.</p>
             </div>
           </div>
         </div>
@@ -273,7 +273,7 @@
       <!-- BOTTOM CTA SECTION -->
       <div class="bottom-cta-section glass-card" style="margin-top: 4rem; text-align: center; padding: 3rem 2rem;">
         <h2 style="font-family: var(--font-header); font-size: 2.2rem; color: var(--color-gold); text-transform: uppercase; margin-bottom: 1rem; letter-spacing: 1px;">Siap Mengabdi untuk Kerajaan?</h2>
-        <p style="color: var(--color-text-secondary); max-width: 600px; margin: 0 auto 2rem auto; font-size: 1rem; line-height: 1.6;">Bergabunglah dengan jajaran deputi elit kami. Tegakkan hukum, lindungi warga, dan ukir karir militer taktis Anda hari ini.</p>
+        <p style="color: var(--color-text-secondary); max-width: 600px; margin: 0 auto 2rem auto; font-size: 1rem; line-height: 1.6;">Lindungi warga, tegakkan hukum, dan buktikan dedikasimu dalam menjaga keamanan Kerajaan Roxwood.</p>
         <button class="btn btn-primary btn-lg" onclick="handleBottomApplyClick()">
           Gabung Sekarang <i data-lucide="arrow-right"></i>
         </button>
@@ -511,11 +511,14 @@
               <i data-lucide="bar-chart-2"></i> Ringkasan Utama
             </button>
             <button class="sidebar-menu-item" onclick="switchDashboardTab('applications')" id="tab-btn-applications">
-              <i data-lucide="clipboard-list"></i> Aplikasi Masuk
+              <i data-lucide="clipboard-list"></i> Formulir Masuk
               <span class="badge" id="badge-pending-count" style="display: none;">0</span>
             </button>
+            <button class="sidebar-menu-item" onclick="switchDashboardTab('rejected')" id="tab-btn-rejected">
+              <i data-lucide="clipboard-x"></i> Riwayat Penolakan
+            </button>
             <button class="sidebar-menu-item" onclick="switchDashboardTab('roster')" id="tab-btn-roster">
-              <i data-lucide="users-round"></i> Pendataan Roster
+              <i data-lucide="users-round"></i> Pendataan Probatus
             </button>
             <button class="sidebar-menu-item" onclick="switchDashboardTab('config')" id="tab-btn-config">
               <i data-lucide="settings"></i> Pengaturan
@@ -532,13 +535,6 @@
 
             <div class="dashboard-stats-grid">
               <div class="dashboard-stat-card">
-                <div class="card-icon blue"><i data-lucide="user-check"></i></div>
-                <div class="card-details">
-                  <h3 id="dash-total-members">0</h3>
-                  <p>Total Anggota Roster</p>
-                </div>
-              </div>
-              <div class="dashboard-stat-card">
                 <div class="card-icon yellow"><i data-lucide="mail-warning"></i></div>
                 <div class="card-details">
                   <h3 id="dash-pending-apps">0</h3>
@@ -549,7 +545,7 @@
                 <div class="card-icon green"><i data-lucide="check-circle-2"></i></div>
                 <div class="card-details">
                   <h3 id="dash-accepted-apps">0</h3>
-                  <p>Penerimaan Bulan Ini</p>
+                  <p>Penerimaan Angkatan Ini</p>
                 </div>
               </div>
             </div>
@@ -579,7 +575,7 @@
           <!-- TAB B: APPLICATIONS (Review Pendaftaran) -->
           <div class="dashboard-tab-content" id="dashboard-tab-applications">
             <div class="header-action-row">
-              <h2 class="dashboard-title">Evaluasi Aplikasi Pendaftaran</h2>
+              <h2 class="dashboard-title">Evaluasi Formulir Pendaftaran</h2>
               <div class="filter-actions">
                 <select id="filter-app-status" onchange="loadApplications()">
                   <option value="pending">Menunggu Review</option>
@@ -599,7 +595,7 @@
           <!-- TAB C: ROSTER (Pendataan & CRUD Anggota) -->
           <div class="dashboard-tab-content" id="dashboard-tab-roster">
             <div class="header-action-row">
-              <h2 class="dashboard-title">Direktori Roster Roxwood</h2>
+              <h2 class="dashboard-title">Direktori Probatus Roxwood</h2>
               <div class="action-buttons-group">
                 <button class="btn btn-sm btn-success" onclick="openAddMemberModal()">
                   <i data-lucide="user-plus"></i> Tambah Anggota Manual
@@ -613,24 +609,6 @@
                 <input type="text" id="roster-search" placeholder="Cari berdasarkan nama/callsign..."
                   oninput="filterRoster()">
               </div>
-              <select id="roster-filter-rank" onchange="filterRoster()">
-                <option value="">Semua Pangkat</option>
-                <option value="Sheriff">Sheriff</option>
-                <option value="Undersheriff">Undersheriff</option>
-                <option value="Captain">Captain</option>
-                <option value="Lieutenant">Lieutenant</option>
-                <option value="Sergeant">Sergeant</option>
-                <option value="Corporal">Corporal</option>
-                <option value="Deputy Sheriff">Deputy Sheriff</option>
-                <option value="Cadet">Cadet</option>
-              </select>
-              <select id="roster-filter-status" onchange="filterRoster()">
-                <option value="">Semua Status</option>
-                <option value="Active">Active Duty</option>
-                <option value="LOA">LOA (Cuti)</option>
-                <option value="Suspended">Suspended</option>
-                <option value="Retired">Retired</option>
-              </select>
             </div>
 
             <!-- ROSTER TABLE -->
@@ -639,18 +617,53 @@
                 <thead>
                   <tr>
                     <th>Nama Karakter</th>
-                    <th>Callsign</th>
-                    <th>Pangkat (Rank)</th>
-                    <th>Divisi</th>
-                    <th>Status</th>
-                    <th>Bergabung</th>
+                    <th>Steam HEX Code</th>
+                    <th>Jenis Kelamin</th>
+                    <th>Tanggal Lahir IC</th>
+                    <th>Angkatan</th>
                     <th>Aksi</th>
                   </tr>
                 </thead>
                 <tbody id="roster-table-body">
                   <!-- Dynamically populated roster list -->
                   <tr>
-                    <td colspan="7" class="text-center">Memuat data roster...</td>
+                    <td colspan="6" class="text-center">Memuat data roster...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- TAB E: REJECTED APPLICATIONS HISTORY -->
+          <div class="dashboard-tab-content" id="dashboard-tab-rejected">
+            <div class="header-action-row">
+              <h2 class="dashboard-title">Riwayat Formulir Ditolak</h2>
+            </div>
+
+            <div class="roster-filters-bar">
+              <div class="search-input-wrapper">
+                <i data-lucide="search"></i>
+                <input type="text" id="rejected-search" placeholder="Cari berdasarkan nama..."
+                  oninput="filterRejectedApps()">
+              </div>
+            </div>
+
+            <!-- REJECTED APPLICATIONS TABLE -->
+            <div class="table-responsive">
+              <table class="roster-table">
+                <thead>
+                  <tr>
+                    <th>Nama Karakter</th>
+                    <th>Nama OOC</th>
+                    <th>Discord ID</th>
+                    <th>Alasan Penolakan</th>
+                    <th>Tanggal Penolakan</th>
+                    <th>Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="rejected-table-body">
+                  <tr>
+                    <td colspan="6" class="text-center">Memuat riwayat penolakan...</td>
                   </tr>
                 </tbody>
               </table>
@@ -805,7 +818,7 @@ ALTER TABLE applications DISABLE ROW LEVEL SECURITY;</code>
   <div class="modal" id="app-detail-modal">
     <div class="modal-content glass-card">
       <div class="modal-header">
-        <h3>Detail Aplikasi Pendaftaran</h3>
+        <h3>Detail Formulir Pendaftaran</h3>
         <button class="close-modal-btn" onclick="closeAppModal()">&times;</button>
       </div>
       <div class="modal-body" id="app-modal-body">
@@ -821,7 +834,7 @@ ALTER TABLE applications DISABLE ROW LEVEL SECURITY;</code>
   <div class="modal" id="member-modal">
     <div class="modal-content glass-card">
       <div class="modal-header">
-        <h3 id="member-modal-title">Tambah Anggota Roster Manual</h3>
+        <h3 id="member-modal-title">Tambah Anggota Probatus Manual</h3>
         <button class="close-modal-btn" onclick="closeMemberModal()">&times;</button>
       </div>
       <div class="modal-body">
@@ -831,46 +844,21 @@ ALTER TABLE applications DISABLE ROW LEVEL SECURITY;</code>
             <label for="member-ic-name">Nama Karakter (IC) <span class="required">*</span></label>
             <input type="text" id="member-ic-name" required placeholder="Contoh: Frank Austin">
           </div>
-          <div class="form-grid">
-            <div class="form-group">
-              <label for="member-callsign">Callsign / Nomor Badge <span class="required">*</span></label>
-              <input type="text" id="member-callsign" required placeholder="Contoh: 102">
-            </div>
-            <div class="form-group">
-              <label for="member-rank">Pangkat (Rank) <span class="required">*</span></label>
-              <select id="member-rank" required>
-                <option value="Cadet">Cadet</option>
-                <option value="Deputy Sheriff">Deputy Sheriff</option>
-                <option value="Corporal">Corporal</option>
-                <option value="Sergeant">Sergeant</option>
-                <option value="Lieutenant">Lieutenant</option>
-                <option value="Captain">Captain</option>
-                <option value="Undersheriff">Undersheriff</option>
-                <option value="Sheriff">Sheriff</option>
-              </select>
-            </div>
+          <div class="form-group">
+            <label for="member-steam-hex">Steam HEX Code <span class="required">*</span></label>
+            <input type="text" id="member-steam-hex" required placeholder="Contoh: steam:11000010abcde12">
           </div>
-          <div class="form-grid">
+          <div class="form-grid" style="grid-template-columns: 1fr 1fr; gap: 1.5rem;">
             <div class="form-group">
-              <label for="member-division">Divisi <span class="required">*</span></label>
-              <select id="member-division" required>
-                <option value="LEGON">LEGON</option>
-                <option value="ARLION">ARLION</option>
-                <option value="INREGIS">INREGIS</option>
-                <option value="DISMAG">DISMAG</option>
-                <option value="VIGILIS">VIGILIS</option>
-                <option value="ICARUS">ICARUS</option>
-                <option value="SMU">SMU</option>
+              <label for="member-ic-gender">Jenis Kelamin (IC) <span class="required">*</span></label>
+              <select id="member-ic-gender" required>
+                <option value="Laki-laki">Laki-laki</option>
+                <option value="Perempuan">Perempuan</option>
               </select>
             </div>
             <div class="form-group">
-              <label for="member-status">Status Kerja <span class="required">*</span></label>
-              <select id="member-status" required>
-                <option value="Active">Active Duty</option>
-                <option value="LOA">LOA (Cuti)</option>
-                <option value="Suspended">Suspended</option>
-                <option value="Retired">Retired</option>
-              </select>
+              <label for="member-ic-dob">Tanggal Lahir (IC) <span class="required">*</span></label>
+              <input type="date" id="member-ic-dob" required>
             </div>
           </div>
           <div class="form-actions-step" style="margin-top: 1.5rem;">

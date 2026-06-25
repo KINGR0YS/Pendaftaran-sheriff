@@ -313,14 +313,14 @@ async function updateRecruitmentStats() {
   let deputiesCount = 0;
   
   if (isDemoMode) {
-    const roster = JSON.parse(localStorage.getItem('roster_data') || '[]');
-    deputiesCount = roster.filter(m => m.status === 'Active').length;
+    const apps = JSON.parse(localStorage.getItem('applications_data') || '[]');
+    deputiesCount = apps.filter(m => m.status === 'approved').length;
   } else if (db) {
     try {
       const { count, error } = await db
-        .from('roster')
+        .from('applications')
         .select('*', { count: 'exact', head: true })
-        .eq('status', 'Active');
+        .eq('status', 'approved');
       if (!error) deputiesCount = count || 0;
     } catch (e) {
       console.error(e);
@@ -530,7 +530,8 @@ async function handleFormSubmit(e) {
     }
   } catch (error) {
     console.error("Submission failed:", error);
-    showToast('Gagal mengirim pendaftaran. Hubungi Admin!', 'error');
+    const errorMsg = error.message || (typeof error === 'object' ? JSON.stringify(error) : error);
+    showToast(`Gagal mengirim pendaftaran: ${errorMsg}`, 'error');
   } finally {
     submitBtn.disabled = false;
     submitBtn.innerHTML = `Kirim Pendaftaran <i data-lucide="check"></i>`;
@@ -662,6 +663,8 @@ function switchDashboardTab(tabId) {
     loadDashboardStats();
   } else if (tabId === 'applications') {
     loadApplications();
+  } else if (tabId === 'rejected') {
+    loadRejectedApps();
   } else if (tabId === 'roster') {
     loadRoster();
   } else if (tabId === 'config') {
@@ -675,26 +678,19 @@ function switchDashboardTab(tabId) {
 // TAB A: STATS & RINGKASAN LOGIC
 // =======================================================
 async function loadDashboardStats() {
-  let roster = [];
   let apps = [];
   
   if (isDemoMode) {
-    roster = JSON.parse(localStorage.getItem('roster_data') || '[]');
     apps = JSON.parse(localStorage.getItem('applications_data') || '[]');
   } else if (db) {
     try {
-      const rosterRes = await db.from('roster').select('*');
       const appsRes = await db.from('applications').select('*');
-      if (!rosterRes.error) roster = rosterRes.data || [];
       if (!appsRes.error) apps = appsRes.data || [];
     } catch (e) {
       console.error(e);
     }
   }
 
-  // Total members
-  document.getElementById('dash-total-members').innerText = roster.length;
-  
   // Pending applications
   const pendingCount = apps.filter(a => a.status === 'pending').length;
   document.getElementById('dash-pending-apps').innerText = pendingCount;
@@ -708,9 +704,9 @@ async function loadDashboardStats() {
     pendingBadge.style.display = 'none';
   }
 
-  // Accepted applications (month overview)
-  const acceptedCount = apps.filter(a => a.status === 'approved').length;
-  document.getElementById('dash-accepted-apps').innerText = acceptedCount;
+  // Accepted applications for active batch (Penerimaan Angkatan Ini)
+  const activeBatchApprovedCount = apps.filter(a => a.status === 'approved' && String(a.batch) === String(activeBatch)).length;
+  document.getElementById('dash-accepted-apps').innerText = activeBatchApprovedCount;
 
   // Render recent activity logs
   renderActivityLogs();
@@ -819,6 +815,9 @@ async function loadApplications() {
 }
 
 async function viewApplicationDetail(appId) {
+  const modalTitle = document.querySelector('#app-detail-modal .modal-header h3');
+  if (modalTitle) modalTitle.innerText = "Detail Formulir Pendaftaran";
+
   let app = null;
   
   if (isDemoMode) {
@@ -834,7 +833,7 @@ async function viewApplicationDetail(appId) {
   }
 
   if (!app) {
-    showToast('Aplikasi tidak ditemukan!', 'error');
+    showToast('Formulir tidak ditemukan!', 'error');
     return;
   }
 
@@ -960,7 +959,7 @@ async function viewApplicationDetail(appId) {
 
     ${app.status === 'rejected' ? `
       <div class="decision-box reject">
-        <h4>Alasan Penolakan Aplikasi:</h4>
+        <h4>Alasan Penolakan Formulir:</h4>
         <p>${app.rejection_reason || 'Tidak ada alasan yang diberikan.'}</p>
       </div>
     ` : ''}
@@ -969,57 +968,28 @@ async function viewApplicationDetail(appId) {
   // Actions footer
   if (app.status === 'pending') {
     modalFooter.innerHTML = `
-      <div style="width: 100%;">
-        <!-- Toggle decision containers -->
-        <div id="decision-actions" style="display: flex; justify-content: flex-end; gap: 1rem;">
-          <button class="btn btn-secondary" onclick="showAppRejectPanel('${app.id}')">
-            Tolak Aplikasi <i data-lucide="x-circle"></i>
-          </button>
-          <button class="btn btn-success" onclick="showAppApprovePanel('${app.id}', '${app.ic_name.replace(/'/g, "\\'")}')">
-            Terima Aplikasi <i data-lucide="check-circle-2"></i>
-          </button>
-        </div>
-
-        <!-- Approval Action Panel -->
-        <div id="approve-panel" class="decision-box approve" style="display: none;">
-          <h4>Penerimaan Deputi Baru</h4>
-          <div class="form-grid" style="grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
-            <div class="form-group">
-              <label for="approve-callsign">Berikan Badge Callsign <span class="required">*</span></label>
-              <input type="text" id="approve-callsign" placeholder="Contoh: 302" required>
-            </div>
-            <div class="form-group">
-              <label for="approve-rank">Pangkat Awal</label>
-              <select id="approve-rank">
-                <option value="Cadet">Cadet</option>
-                <option value="Deputy Sheriff">Deputy Sheriff</option>
-              </select>
-            </div>
-          </div>
-          <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
-            <button class="btn btn-sm btn-secondary" onclick="hideAppDecisionPanels()">Batal</button>
-            <button class="btn btn-sm btn-success" onclick="submitAppApproval('${app.id}', '${app.ic_name.replace(/'/g, "\\'")}')">Konfirmasi & Simpan Roster <i data-lucide="check"></i></button>
-          </div>
-        </div>
-
-        <!-- Rejection Action Panel -->
-        <div id="reject-panel" class="decision-box reject" style="display: none;">
-          <h4>Tolak Aplikasi Pendaftaran</h4>
-          <div class="form-group" style="margin-bottom: 1rem;">
-            <label for="reject-reason">Alasan Penolakan <span class="required">*</span></label>
-            <textarea id="reject-reason" rows="2" placeholder="Tulis alasan pendaftaran ditolak agar dibaca pendaftar..." required></textarea>
-          </div>
-          <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
-            <button class="btn btn-sm btn-secondary" onclick="hideAppDecisionPanels()">Batal</button>
-            <button class="btn btn-sm btn-primary" onclick="submitAppRejection('${app.id}')">Konfirmasi Tolak <i data-lucide="x"></i></button>
-          </div>
-        </div>
+      <div style="display: flex; justify-content: flex-end; gap: 1rem; width: 100%;">
+        <button class="btn btn-secondary" onclick="triggerAppRejection('${app.id}')">
+          Tolak Formulir <i data-lucide="x-circle"></i>
+        </button>
+        <button class="btn btn-success" onclick="triggerAppApproval('${app.id}', '${app.ic_name.replace(/'/g, "\\'")}')">
+          Terima Formulir <i data-lucide="check-circle-2"></i>
+        </button>
       </div>
     `;
   } else {
-    modalFooter.innerHTML = `
-      <button class="btn btn-secondary" onclick="closeAppModal()">Tutup</button>
-    `;
+    if (app.status === 'approved') {
+      modalFooter.innerHTML = `
+        <button class="btn btn-danger" onclick="deleteMember('${app.id}', '${app.ic_name.replace(/'/g, "\\'")}')" style="margin-right: auto; padding: 0.5rem 1rem; font-size: 0.9rem; display: flex; align-items: center; gap: 0.25rem;">
+          <i data-lucide="trash-2" style="width: 16px; height: 16px;"></i> Hapus Dari Pendataan
+        </button>
+        <button class="btn btn-secondary" onclick="closeAppModal()">Tutup</button>
+      `;
+    } else {
+      modalFooter.innerHTML = `
+        <button class="btn btn-secondary" onclick="closeAppModal()">Tutup</button>
+      `;
+    }
   }
 
   // Open modal
@@ -1031,37 +1001,23 @@ function closeAppModal() {
   document.getElementById('app-detail-modal').classList.remove('open');
 }
 
-// Subpanel switch decisions
-function showAppApprovePanel(appId, icName) {
-  document.getElementById('decision-actions').style.display = 'none';
-  document.getElementById('approve-panel').style.display = 'block';
-  document.getElementById('approve-callsign').focus();
-  lucide.createIcons();
-}
-
-function showAppRejectPanel(appId) {
-  document.getElementById('decision-actions').style.display = 'none';
-  document.getElementById('reject-panel').style.display = 'block';
-  document.getElementById('reject-reason').focus();
-  lucide.createIcons();
-}
-
-function hideAppDecisionPanels() {
-  document.getElementById('decision-actions').style.display = 'flex';
-  document.getElementById('approve-panel').style.display = 'none';
-  document.getElementById('reject-panel').style.display = 'none';
-  lucide.createIcons();
-}
-
-// Approve action API
-async function submitAppApproval(appId, icName) {
-  const callsign = document.getElementById('approve-callsign').value.trim();
-  const rank = document.getElementById('approve-rank').value;
-
-  if (!callsign) {
-    showToast('Badge Callsign wajib diisi!', 'error');
-    return;
+// Directly trigger approval with confirmation
+function triggerAppApproval(appId, icName) {
+  if (confirm(`Apakah Anda yakin ingin MENERIMA pendaftaran dari ${icName}?`)) {
+    submitAppApproval(appId, icName);
   }
+}
+
+// Directly trigger rejection
+function triggerAppRejection(appId) {
+  submitAppRejection(appId);
+}
+
+// Approve action API (direct, without subpanels)
+async function submitAppApproval(appId, icName) {
+  // Generate random callsign to satisfy database constraints if roster table is active
+  const callsign = "PROB-" + Math.random().toString(36).substr(2, 5).toUpperCase();
+  const rank = "Cadet";
 
   try {
     if (isDemoMode) {
@@ -1075,13 +1031,6 @@ async function submitAppApproval(appId, icName) {
 
       // 2. Tambah ke local roster
       const roster = JSON.parse(localStorage.getItem('roster_data') || '[]');
-      
-      // Cek apakah callsign duplikat
-      if (roster.some(r => r.callsign === callsign)) {
-        showToast('Callsign badge sudah digunakan oleh deputi lain!', 'error');
-        return;
-      }
-
       roster.push({
         id: "r_" + Math.random().toString(36).substr(2, 9),
         ic_name: icName,
@@ -1089,25 +1038,14 @@ async function submitAppApproval(appId, icName) {
         rank: rank,
         division: 'VIGILIS',
         status: 'Active',
-        batch: apps[index].batch || '1',
+        batch: apps[index]?.batch || '1',
         join_date: new Date().toISOString()
       });
       localStorage.setItem('roster_data', JSON.stringify(roster));
 
-      // Log activity
-      logActivity(`Pimpinan menyetujui aplikasi <strong>${icName}</strong> dengan Badge Callsign: <strong>[${callsign}]</strong>`);
-
+      logActivity(`Pimpinan menyetujui formulir <strong>${icName}</strong>`);
       onApprovalSuccess();
     } else if (db) {
-      // Supabase transaction simulation (since we call two tables)
-      
-      // Cek duplikat callsign di supabase
-      const { data: duplicate } = await db.from('roster').select('id').eq('callsign', callsign).maybeSingle();
-      if (duplicate) {
-        showToast('Callsign badge sudah digunakan oleh deputi lain!', 'error');
-        return;
-      }
-
       // 1. Get batch from application
       const { data: appData, error: fetchErr } = await db.from('applications').select('batch').eq('id', appId).single();
       if (fetchErr) throw fetchErr;
@@ -1117,7 +1055,7 @@ async function submitAppApproval(appId, icName) {
       const { error: appErr } = await db.from('applications').update({ status: 'approved' }).eq('id', appId);
       if (appErr) throw appErr;
 
-      // 3. Insert to roster
+      // 3. Insert to roster (optional db sync)
       const { error: rosterErr } = await db.from('roster').insert([{
         ic_name: icName,
         callsign: callsign,
@@ -1126,30 +1064,31 @@ async function submitAppApproval(appId, icName) {
         status: 'Active',
         batch: appBatch
       }]);
-      if (rosterErr) throw rosterErr;
+      // Silently ignore roster table issues if database doesn't have it or has constraint issue
+      if (rosterErr) {
+        console.warn("Roster table sync skipped or failed:", rosterErr.message);
+      }
 
       onApprovalSuccess();
     }
   } catch (error) {
     console.error(error);
-    showToast('Gagal menyetujui aplikasi.', 'error');
+    showToast('Gagal menyetujui formulir.', 'error');
   }
 }
 
 function onApprovalSuccess() {
-  showToast('Aplikasi berhasil disetujui dan dimasukkan ke Roster.', 'success');
+  showToast('Formulir berhasil disetujui.', 'success');
   closeAppModal();
   loadApplications();
 }
 
-// Reject action API
+// Reject action API (using prompt for rejection reason)
 async function submitAppRejection(appId) {
-  const reason = document.getElementById('reject-reason').value.trim();
-
-  if (!reason) {
-    showToast('Alasan penolakan wajib diisi!', 'error');
-    return;
-  }
+  const reason = prompt("Masukkan alasan penolakan (opsional):");
+  if (reason === null) return; // Aborted by user clicking cancel
+  
+  const finalReason = reason.trim() || "Ditolak oleh Administrator";
 
   try {
     if (isDemoMode) {
@@ -1157,17 +1096,16 @@ async function submitAppRejection(appId) {
       const index = apps.findIndex(a => a.id === appId);
       if (index !== -1) {
         apps[index].status = 'rejected';
-        apps[index].rejection_reason = reason;
+        apps[index].rejection_reason = finalReason;
         localStorage.setItem('applications_data', JSON.stringify(apps));
         
-        // Log activity
-        logActivity(`Pimpinan menolak aplikasi <strong>${apps[index].ic_name}</strong>. Alasan: ${reason}`);
+        logActivity(`Pimpinan menolak formulir <strong>${apps[index].ic_name}</strong>. Alasan: ${finalReason}`);
       }
       onRejectionSuccess();
     } else if (db) {
       const { error } = await db
         .from('applications')
-        .update({ status: 'rejected', rejection_reason: reason })
+        .update({ status: 'rejected', rejection_reason: finalReason })
         .eq('id', appId);
         
       if (error) throw error;
@@ -1175,12 +1113,12 @@ async function submitAppRejection(appId) {
     }
   } catch (error) {
     console.error(error);
-    showToast('Gagal menolak aplikasi.', 'error');
+    showToast('Gagal menolak formulir.', 'error');
   }
 }
 
 function onRejectionSuccess() {
-  showToast('Aplikasi telah ditolak.', 'info');
+  showToast('Formulir telah ditolak.', 'info');
   closeAppModal();
   loadApplications();
 }
@@ -1192,13 +1130,17 @@ let localRosterState = [];
 
 async function loadRoster() {
   const tableBody = document.getElementById('roster-table-body');
-  tableBody.innerHTML = `<tr><td colspan="7" class="text-center">Memuat data roster...</td></tr>`;
+  tableBody.innerHTML = `<tr><td colspan="6" class="text-center">Memuat data roster...</td></tr>`;
 
   try {
     if (isDemoMode) {
-      localRosterState = JSON.parse(localStorage.getItem('roster_data') || '[]');
+      const apps = JSON.parse(localStorage.getItem('applications_data') || '[]');
+      localRosterState = apps.filter(a => a.status === 'approved');
     } else if (db) {
-      const { data, error } = await db.from('roster').select('*').order('callsign', { ascending: true });
+      const { data, error } = await db.from('applications')
+        .select('*')
+        .eq('status', 'approved')
+        .order('created_at', { ascending: false });
       if (error) throw error;
       localRosterState = data || [];
     }
@@ -1206,7 +1148,7 @@ async function loadRoster() {
     renderRosterTable(localRosterState);
   } catch (error) {
     console.error("Failed to load roster:", error);
-    tableBody.innerHTML = `<tr><td colspan="7" class="text-center text-danger">Gagal memuat data dari database cloud.</td></tr>`;
+    tableBody.innerHTML = `<tr><td colspan="6" class="text-center text-danger">Gagal memuat data dari database cloud.</td></tr>`;
   }
 }
 
@@ -1214,51 +1156,25 @@ function renderRosterTable(rosterList) {
   const tableBody = document.getElementById('roster-table-body');
   
   if (rosterList.length === 0) {
-    tableBody.innerHTML = `<tr><td colspan="7" class="text-center">Belum ada anggota terdaftar di Roster.</td></tr>`;
+    tableBody.innerHTML = `<tr><td colspan="6" class="text-center">Belum ada anggota terdaftar.</td></tr>`;
     return;
   }
 
-  // Sort by callsign number order naturally
-  rosterList.sort((a, b) => parseInt(a.callsign) - parseInt(b.callsign));
+  // Sort alphabetically by ic_name
+  rosterList.sort((a, b) => a.ic_name.localeCompare(b.ic_name));
 
   tableBody.innerHTML = rosterList.map(member => {
-    const formattedDate = new Date(member.join_date || member.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
-    
-    // Status Badge classes
-    let statusClass = 'active';
-    let statusLabel = 'ACTIVE';
-    if (member.status === 'LOA') { statusClass = 'loa'; statusLabel = 'CUTI (LOA)'; }
-    if (member.status === 'Suspended') { statusClass = 'suspended'; statusLabel = 'SUSPENDED'; }
-    if (member.status === 'Retired') { statusClass = 'retired'; statusLabel = 'RETIRED'; }
-
-    // Rank class styling
-    const rankLower = member.rank.toLowerCase();
-    let rankClass = 'cadet';
-    if (rankLower.includes('sheriff')) rankClass = 'sheriff';
-    if (rankLower.includes('undersheriff')) rankClass = 'undersheriff';
-    if (rankLower.includes('captain')) rankClass = 'captain';
-    if (rankLower.includes('lieutenant')) rankClass = 'lieutenant';
-    if (rankLower.includes('sergeant')) rankClass = 'sergeant';
-
     return `
       <tr>
         <td><strong>${member.ic_name}</strong></td>
-        <td><code style="font-size: 1rem; color: var(--color-gold);">[${member.callsign}]</code></td>
-        <td><span class="badge-rank ${rankClass}">${member.rank}</span></td>
-        <td>
-          <span class="badge-division">
-            ${getDivisionIcon(member.division)} ${member.division}
-          </span>
-        </td>
-        <td><span class="badge-status ${statusClass}">${statusLabel}</span></td>
-        <td>${formattedDate}<br><small style="color: var(--color-text-muted); font-size: 0.75rem;">Angkatan ${member.batch || '1'}</small></td>
+        <td><code>${member.steam_hex || '-'}</code></td>
+        <td>${member.ic_gender || '-'}</td>
+        <td>${member.ic_dob || '-'}</td>
+        <td>Angkatan ${member.batch || '1'}</td>
         <td>
           <div class="table-actions">
-            <button class="btn-icon edit" onclick="openEditMemberModal('${member.id}')" title="Edit Anggota">
-              <i data-lucide="pencil"></i>
-            </button>
-            <button class="btn-icon delete" onclick="deleteMember('${member.id}', '${member.ic_name.replace(/'/g, "\\'")}')" title="Pecat / Hapus Anggota">
-              <i data-lucide="trash-2"></i>
+            <button class="btn btn-primary btn-sm" onclick="viewApplicationDetail('${member.id}')" style="padding: 0.25rem 0.75rem; font-size: 0.8rem; display: flex; align-items: center; gap: 0.25rem;">
+              <i data-lucide="eye" style="width: 14px; height: 14px;"></i> Lihat Detail
             </button>
           </div>
         </td>
@@ -1280,15 +1196,11 @@ function getDivisionIcon(division) {
 // Local filters
 function filterRoster() {
   const query = document.getElementById('roster-search').value.toLowerCase();
-  const rank = document.getElementById('roster-filter-rank').value;
-  const status = document.getElementById('roster-filter-status').value;
 
   const filtered = localRosterState.filter(member => {
-    const matchesQuery = member.ic_name.toLowerCase().includes(query) || member.callsign.includes(query);
-    const matchesRank = !rank || member.rank === rank;
-    const matchesStatus = !status || member.status === status;
-    
-    return matchesQuery && matchesRank && matchesStatus;
+    const matchesQuery = member.ic_name.toLowerCase().includes(query) || 
+                         (member.steam_hex && member.steam_hex.toLowerCase().includes(query));
+    return matchesQuery;
   });
 
   renderRosterTable(filtered);
@@ -1308,13 +1220,11 @@ function openEditMemberModal(memberId) {
   const member = localRosterState.find(m => m.id === memberId);
   if (!member) return;
 
-  document.getElementById('member-modal-title').innerText = "Edit Detail Deputi";
+  document.getElementById('member-modal-title').innerText = "Edit Detail Probatus";
   document.getElementById('edit-member-id').value = member.id;
   document.getElementById('member-ic-name').value = member.ic_name;
   document.getElementById('member-callsign').value = member.callsign;
-  document.getElementById('member-rank').value = member.rank;
   document.getElementById('member-division').value = member.division;
-  document.getElementById('member-status').value = member.status;
 
   document.getElementById('member-modal').classList.add('open');
   lucide.createIcons();
@@ -1324,108 +1234,211 @@ function closeMemberModal() {
   document.getElementById('member-modal').classList.remove('open');
 }
 
-// Add/Update member submission
+/// Add/Update member submission
 async function handleMemberSubmit(e) {
   e.preventDefault();
   
   const id = document.getElementById('edit-member-id').value;
   const icName = document.getElementById('member-ic-name').value.trim();
-  const callsign = document.getElementById('member-callsign').value.trim();
-  const rank = document.getElementById('member-rank').value;
-  const division = document.getElementById('member-division').value;
-  const status = document.getElementById('member-status').value;
+  const steamHex = document.getElementById('member-steam-hex').value.trim();
+  const icGender = document.getElementById('member-ic-gender').value;
+  const icDob = document.getElementById('member-ic-dob').value;
 
-  const memberData = {
+  const appData = {
     ic_name: icName,
-    callsign: callsign,
-    rank: rank,
-    division: division,
-    status: status
+    steam_hex: steamHex,
+    ic_gender: icGender,
+    ic_dob: icDob,
+    ooc_name: 'Manual Entry',
+    passport_name_ooc: 'Manual Entry',
+    ooc_age: 18,
+    ooc_gender: icGender,
+    discord_id: 'Manual Entry',
+    playtime: 'Manual Entry',
+    rp_experience_ooc: 'Manual Entry',
+    obligations_other_cities: 'Manual Entry',
+    ic_age: 18,
+    phone_number: 'Manual Entry',
+    origin: 'Manual Entry',
+    experience: 'Manual Entry',
+    criminal_record: 'Manual Entry',
+    work_experience_ic: 'Manual Entry',
+    motivation_roxwood: 'Manual Entry',
+    why_accept_roxwood: 'Manual Entry',
+    active_hours: 'Manual Entry',
+    chain_of_command: 'Manual Entry',
+    scenario_use_of_force: 'Manual Entry',
+    batch: activeBatch,
+    status: 'approved',
+    created_at: new Date().toISOString()
   };
 
   try {
     if (isDemoMode) {
-      const roster = JSON.parse(localStorage.getItem('roster_data') || '[]');
+      const apps = JSON.parse(localStorage.getItem('applications_data') || '[]');
 
       if (id) {
-        // Mode EDIT
-        // Cek duplikat callsign di luar member yang sedang di-edit
-        if (roster.some(r => r.callsign === callsign && r.id !== id)) {
-          showToast('Callsign badge sudah digunakan!', 'error');
-          return;
-        }
-
-        const idx = roster.findIndex(m => m.id === id);
+        // Mode EDIT (if applicable, though UI only displays Lihat Detail now)
+        const idx = apps.findIndex(m => m.id === id);
         if (idx !== -1) {
-          // Log promo atau perubahan
-          const old = roster[idx];
-          if (old.rank !== rank) logActivity(`Pangkat <strong>${icName}</strong> diubah dari ${old.rank} ke <strong>${rank}</strong>`);
-          
-          roster[idx] = { ...old, ...memberData };
-          showToast('Data deputi berhasil diperbarui.', 'success');
+          apps[idx] = { ...apps[idx], ic_name: icName, steam_hex: steamHex, ic_gender: icGender, ic_dob: icDob };
+          showToast('Data anggota berhasil diperbarui.', 'success');
         }
       } else {
         // Mode TAMBAH MANUAL
-        if (roster.some(r => r.callsign === callsign)) {
-          showToast('Callsign badge sudah digunakan!', 'error');
-          return;
-        }
-
-        memberData.id = "r_" + Math.random().toString(36).substr(2, 9);
-        memberData.join_date = new Date().toISOString();
-        memberData.batch = activeBatch;
-        roster.push(memberData);
-        
-        logActivity(`Anggota baru terdaftar manual: <strong>${icName}</strong> [Badge: ${callsign}]`);
-        showToast('Deputi berhasil didaftarkan.', 'success');
+        appData.id = "app_" + Math.random().toString(36).substr(2, 9);
+        apps.push(appData);
+        logActivity(`Anggota baru terdaftar manual: <strong>${icName}</strong>`);
+        showToast('Anggota berhasil didaftarkan.', 'success');
       }
 
-      localStorage.setItem('roster_data', JSON.stringify(roster));
+      localStorage.setItem('applications_data', JSON.stringify(apps));
       closeMemberModal();
       loadRoster();
     } else if (db) {
       if (id) {
         // Edit Supabase
-        const { error } = await db.from('roster').update(memberData).eq('id', id);
+        const { error } = await db.from('applications').update({
+          ic_name: icName,
+          steam_hex: steamHex,
+          ic_gender: icGender,
+          ic_dob: icDob
+        }).eq('id', id);
         if (error) throw error;
         showToast('Data berhasil disimpan ke cloud database.', 'success');
       } else {
         // Tambah Supabase
-        const { error } = await db.from('roster').insert([{ ...memberData, batch: activeBatch }]);
+        const { error } = await db.from('applications').insert([appData]);
         if (error) throw error;
-        showToast('Deputi baru ditambahkan ke cloud database.', 'success');
+        showToast('Anggota baru ditambahkan ke cloud database.', 'success');
       }
       closeMemberModal();
       loadRoster();
     }
   } catch (error) {
     console.error(error);
-    showToast('Gagal memproses data anggota.', 'error');
+    const errorMsg = error.message || (typeof error === 'object' ? JSON.stringify(error) : error);
+    showToast(`Gagal memproses data anggota: ${errorMsg}`, 'error');
   }
 }
 
 // Delete / Fire member
 async function deleteMember(memberId, icName) {
-  if (!confirm(`Apakah Anda yakin ingin memecat / menghapus ${icName} dari roster?`)) return;
+  if (!confirm(`Apakah Anda yakin ingin menghapus ${icName} dari pendataan?`)) return;
 
   try {
     if (isDemoMode) {
+      // 1. Delete from applications
+      const apps = JSON.parse(localStorage.getItem('applications_data') || '[]');
+      const filteredApps = apps.filter(a => a.id !== memberId);
+      localStorage.setItem('applications_data', JSON.stringify(filteredApps));
+
+      // 2. Delete from roster (optional db sync)
       const roster = JSON.parse(localStorage.getItem('roster_data') || '[]');
-      const filtered = roster.filter(m => m.id !== memberId);
-      localStorage.setItem('roster_data', JSON.stringify(filtered));
+      const filteredRoster = roster.filter(m => m.ic_name !== icName);
+      localStorage.setItem('roster_data', JSON.stringify(filteredRoster));
       
-      logActivity(`Anggota <strong>${icName}</strong> dihapus/dipecat dari roster.`);
-      showToast('Anggota dihapus dari roster.', 'info');
+      logActivity(`Anggota <strong>${icName}</strong> dihapus dari pendataan.`);
+      showToast('Data berhasil dihapus.', 'info');
+      closeAppModal();
       loadRoster();
     } else if (db) {
-      const { error } = await db.from('roster').delete().eq('id', memberId);
+      // 1. Delete from applications
+      const { error } = await db.from('applications').delete().eq('id', memberId);
       if (error) throw error;
-      showToast('Anggota terhapus dari cloud database.', 'info');
+
+      // 2. Delete from roster (optional db sync)
+      const { error: rosterErr } = await db.from('roster').delete().eq('ic_name', icName);
+      if (rosterErr) {
+        console.warn("Roster sync delete failed:", rosterErr.message);
+      }
+
+      showToast('Data berhasil dihapus dari cloud database.', 'info');
+      closeAppModal();
       loadRoster();
     }
   } catch (error) {
     console.error(error);
-    showToast('Gagal menghapus anggota.', 'error');
+    const errorMsg = error.message || (typeof error === 'object' ? JSON.stringify(error) : error);
+    showToast(`Gagal menghapus data: ${errorMsg}`, 'error');
+  }
+}
+
+// View detailed data for a roster member (link to online application)
+async function viewMemberDetail(memberId) {
+  const member = localRosterState.find(m => m.id === memberId);
+  if (!member) return;
+
+  const icName = member.ic_name.trim().toLowerCase();
+  let app = null;
+
+  try {
+    if (isDemoMode) {
+      const apps = JSON.parse(localStorage.getItem('applications_data') || '[]');
+      app = apps.find(a => a.ic_name.trim().toLowerCase() === icName);
+    } else if (db) {
+      const { data, error } = await db.from('applications')
+        .select('*')
+        .eq('ic_name', member.ic_name)
+        .order('created_at', { ascending: false });
+      if (!error && data && data.length > 0) {
+        app = data[0];
+      }
+    }
+  } catch (error) {
+    console.error("Failed to load application detail for member:", error);
+  }
+
+  const modalBody = document.getElementById('app-modal-body');
+  const modalFooter = document.getElementById('app-modal-footer');
+  const modalTitle = document.querySelector('#app-detail-modal .modal-header h3');
+
+  if (app) {
+    if (modalTitle) modalTitle.innerText = "Detail Formulir Pendaftaran";
+    await viewApplicationDetail(app.id);
+  } else {
+    if (modalTitle) modalTitle.innerText = "Detail Anggota Roster";
+    
+    const formattedDate = new Date(member.join_date || member.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+    
+    modalBody.innerHTML = `
+      <div class="modal-detail-section">
+        <h4>Informasi Anggota (Pendaftaran Manual)</h4>
+        <div class="detail-row-grid">
+          <div class="detail-label-value">
+            <span>Nama Karakter (IC)</span>
+            <span><strong>${member.ic_name}</strong></span>
+          </div>
+          <div class="detail-label-value">
+            <span>Callsign / Nomor Badge</span>
+            <span><code style="font-size: 1rem; color: var(--color-gold);">[${member.callsign}]</code></span>
+          </div>
+          <div class="detail-label-value">
+            <span>Divisi</span>
+            <span>${member.division}</span>
+          </div>
+          <div class="detail-label-value">
+            <span>Angkatan</span>
+            <span>Angkatan ${member.batch || '1'}</span>
+          </div>
+          <div class="detail-label-value">
+            <span>Tanggal Bergabung</span>
+            <span>${formattedDate}</span>
+          </div>
+        </div>
+        <div style="margin-top: 1.5rem; padding: 1rem; background: rgba(212, 175, 55, 0.03); border: 1px solid rgba(212, 175, 55, 0.15); border-radius: 6px; color: var(--color-text-secondary); font-size: 0.9rem;">
+          <i data-lucide="info" style="display: inline-block; vertical-align: middle; width: 16px; height: 16px; margin-right: 5px; color: var(--color-gold);"></i>
+          Anggota ini didaftarkan secara manual oleh Administrator dan tidak memiliki berkas pendaftaran online (OOC/Skenario).
+        </div>
+      </div>
+    `;
+    
+    modalFooter.innerHTML = `
+      <button class="btn btn-secondary" onclick="closeAppModal()">Tutup</button>
+    `;
+    
+    document.getElementById('app-detail-modal').classList.add('open');
+    lucide.createIcons();
   }
 }
 
@@ -1582,4 +1595,81 @@ function applySavedUISettings() {
   const savedWidth = localStorage.getItem('ui_scale_width') || 'normal';
   changeTextScale(savedScale);
   changeLayoutWidth(savedWidth);
+}
+
+// =======================================================
+// TAB E: REJECTED APPLICATIONS HISTORY LOGIC
+// =======================================================
+let localRejectedAppsState = [];
+
+async function loadRejectedApps() {
+  const tableBody = document.getElementById('rejected-table-body');
+  if (tableBody) tableBody.innerHTML = `<tr><td colspan="6" class="text-center">Memuat riwayat penolakan...</td></tr>`;
+
+  try {
+    let apps = [];
+    if (isDemoMode) {
+      apps = JSON.parse(localStorage.getItem('applications_data') || '[]');
+    } else if (db) {
+      const { data, error } = await db.from('applications')
+        .select('*')
+        .eq('status', 'rejected')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      apps = data || [];
+    }
+    
+    localRejectedAppsState = apps.filter(a => a.status === 'rejected');
+    renderRejectedTable(localRejectedAppsState);
+  } catch (error) {
+    console.error("Failed to load rejected apps:", error);
+    if (tableBody) tableBody.innerHTML = `<tr><td colspan="6" class="text-center text-danger">Gagal memuat data dari database cloud.</td></tr>`;
+  }
+}
+
+function renderRejectedTable(rejectedList) {
+  const tableBody = document.getElementById('rejected-table-body');
+  if (!tableBody) return;
+
+  if (rejectedList.length === 0) {
+    tableBody.innerHTML = `<tr><td colspan="6" class="text-center">Belum ada riwayat penolakan.</td></tr>`;
+    return;
+  }
+
+  // Sort by date descending
+  rejectedList.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+  tableBody.innerHTML = rejectedList.map(app => {
+    const rejectedDate = new Date(app.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+    return `
+      <tr>
+        <td><strong>${app.ic_name}</strong></td>
+        <td>${app.ooc_name || '-'}</td>
+        <td><code>${app.discord_id || '-'}</code></td>
+        <td class="text-danger" style="max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${app.rejection_reason || 'Tidak ada alasan'}">
+          ${app.rejection_reason || 'Tidak ada alasan'}
+        </td>
+        <td>${rejectedDate}</td>
+        <td>
+          <div class="table-actions">
+            <button class="btn btn-secondary btn-sm" onclick="viewApplicationDetail('${app.id}')" style="padding: 0.25rem 0.75rem; font-size: 0.8rem; display: flex; align-items: center; gap: 0.25rem;">
+              <i data-lucide="eye" style="width: 14px; height: 14px;"></i> Lihat Detail
+            </button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+
+  lucide.createIcons();
+}
+
+function filterRejectedApps() {
+  const query = document.getElementById('rejected-search').value.toLowerCase();
+  const filtered = localRejectedAppsState.filter(app => {
+    return (app.ic_name && app.ic_name.toLowerCase().includes(query)) ||
+           (app.ooc_name && app.ooc_name.toLowerCase().includes(query)) ||
+           (app.rejection_reason && app.rejection_reason.toLowerCase().includes(query));
+  });
+  renderRejectedTable(filtered);
 }
