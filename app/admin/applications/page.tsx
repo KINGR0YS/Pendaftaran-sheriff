@@ -248,10 +248,6 @@ export default function ApplicationsPage() {
                   <span>Nomor HP</span>
                   <span>{selectedApp.phone_number}</span>
                 </div>
-                <div className="detail-label-value">
-                  <span>Asal Negara</span>
-                  <span>{selectedApp.origin}</span>
-                </div>
                 <div className="detail-label-value" style={{ gridColumn: 'span 2', marginTop: '0.5rem' }}>
                   <span>Riwayat Pengalaman LEO</span>
                   <span>{selectedApp.experience}</span>
@@ -261,7 +257,7 @@ export default function ApplicationsPage() {
 
             {/* QUESTIONS & SCENARIOS */}
             <div className="modal-detail-section">
-              <h4>Kualifikasi Personal & Skenario Taktis</h4>
+              <h4>Kualifikasi Personal</h4>
               <div className="modal-question-box">
                 <p>Kasus Kriminal:</p>
                 <p>{selectedApp.criminal_record || '-'}</p>
@@ -281,14 +277,6 @@ export default function ApplicationsPage() {
               <div className="modal-question-box">
                 <p>Jam Aktif Berdinas:</p>
                 <p>{selectedApp.active_hours || '-'}</p>
-              </div>
-              <div className="modal-question-box">
-                <p>Apa arti Rantai Komando?</p>
-                <p>{selectedApp.chain_of_command}</p>
-              </div>
-              <div className="modal-question-box">
-                <p>Skenario Tindakan Penembakan / Penggunaan Kekuatan (Use of Force):</p>
-                <p>{selectedApp.scenario_use_of_force}</p>
               </div>
             </div>
 

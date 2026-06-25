@@ -8,7 +8,7 @@ export default function ApplyPage() {
   const { showToast } = useToast();
   const [step, setStep] = useState(1);
   const [activeBatch, setActiveBatch] = useState('1');
-  
+
   const [formData, setFormData] = useState({
     ooc_name: '',
     passport_name_ooc: '',
@@ -24,19 +24,15 @@ export default function ApplyPage() {
     ic_gender: '',
     ic_dob: '',
     phone_number: '',
-    origin: '',
     experience: '',
     criminal_record: '',
     work_experience_ic: '',
     motivation_roxwood: '',
     why_accept_roxwood: '',
     active_hours: '',
-    chain_of_command: '',
-    scenario_use_of_force: ''
   });
 
   useEffect(() => {
-    // Guards
     const recruitmentStatus = localStorage.getItem('recruitment_status') || 'open';
     const allowApplyAccess = localStorage.getItem('allowApplyAccess') === 'true';
     setActiveBatch(localStorage.getItem('active_batch') || '1');
@@ -64,9 +60,9 @@ export default function ApplyPage() {
     if (currentStep === 1) {
       fields = ['ooc_name', 'passport_name_ooc', 'ooc_age', 'ooc_gender', 'discord_id', 'steam_hex', 'playtime', 'rp_experience_ooc', 'obligations_other_cities'];
     } else if (currentStep === 2) {
-      fields = ['ic_name', 'ic_age', 'ic_gender', 'ic_dob', 'phone_number', 'origin', 'experience'];
+      fields = ['ic_name', 'ic_age', 'ic_gender', 'ic_dob', 'phone_number', 'experience'];
     }
-    
+
     for (const field of fields) {
       if (!formData[field as keyof typeof formData]) {
         return false;
@@ -104,9 +100,8 @@ export default function ApplyPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Validate step 3 fields
-    const fieldsStep3 = ['criminal_record', 'work_experience_ic', 'motivation_roxwood', 'why_accept_roxwood', 'active_hours', 'chain_of_command', 'scenario_use_of_force'];
+
+    const fieldsStep3 = ['criminal_record', 'work_experience_ic', 'motivation_roxwood', 'why_accept_roxwood', 'active_hours'];
     for (const field of fieldsStep3) {
       if (!formData[field as keyof typeof formData]) {
         showToast('Harap lengkapi semua kolom wajib diisi (*)!', 'error');
@@ -120,6 +115,9 @@ export default function ApplyPage() {
       ic_age: parseInt(formData.ic_age),
       batch: activeBatch,
       status: 'pending',
+      origin: '-',
+      chain_of_command: '-',
+      scenario_use_of_force: '-',
       created_at: new Date().toISOString()
     };
 
@@ -174,7 +172,7 @@ export default function ApplyPage() {
                 </div>
                 <div className="form-group">
                   <label htmlFor="ooc_gender">Jenis Kelamin (OOC) <span className="required">*</span></label>
-                  <select id="ooc_gender" value={formData.ooc_gender} onChange={handleChange} required>
+                  <select id="ooc_gender" value={formData.ooc_gender} onChange={handleChange} required className="form-select">
                     <option value="" disabled>Pilih Jenis Kelamin</option>
                     <option value="Laki-laki">Laki-laki</option>
                     <option value="Perempuan">Perempuan</option>
@@ -189,15 +187,15 @@ export default function ApplyPage() {
                   <input type="text" id="steam_hex" value={formData.steam_hex} onChange={handleChange} placeholder="Contoh: steam:11000010abcde12" required />
                 </div>
                 <div className="form-group full-width">
-                  <label htmlFor="playtime">BERAPA LAMA PENGALAMAN BERMAIN ROLE PLAY? <span className="required">*</span></label>
+                  <label htmlFor="playtime">Berapa lama pengalaman bermain role play? <span className="required">*</span></label>
                   <input type="text" id="playtime" value={formData.playtime} onChange={handleChange} placeholder="Contoh: 1 tahun" required />
                 </div>
                 <div className="form-group full-width">
-                  <label htmlFor="rp_experience_ooc">PENGALAMAN RP APA SAJA YANG SUDAH ANDA LAKUKAN? <span className="required">*</span></label>
+                  <label htmlFor="rp_experience_ooc">Pengalaman RP apa saja yang sudah Anda lakukan? <span className="required">*</span></label>
                   <textarea id="rp_experience_ooc" value={formData.rp_experience_ooc} onChange={handleChange} rows={2} placeholder="Sebutkan server dan peran/faksi yang pernah Anda jalani..." required></textarea>
                 </div>
                 <div className="form-group full-width">
-                  <label htmlFor="obligations_other_cities">APAKAH ANDA MEMILIKI TANGGUNGAN DI KOTA LAIN? <span className="required">*</span></label>
+                  <label htmlFor="obligations_other_cities">Apakah memiliki tanggungan di kota lain? <span className="required">*</span></label>
                   <input type="text" id="obligations_other_cities" value={formData.obligations_other_cities} onChange={handleChange} placeholder="Contoh: Tidak ada / Ada, menjadi anggota LSPD di server X" required />
                 </div>
               </div>
@@ -223,7 +221,7 @@ export default function ApplyPage() {
                 </div>
                 <div className="form-group">
                   <label htmlFor="ic_gender">Jenis Kelamin (IC) <span className="required">*</span></label>
-                  <select id="ic_gender" value={formData.ic_gender} onChange={handleChange} required>
+                  <select id="ic_gender" value={formData.ic_gender} onChange={handleChange} required className="form-select">
                     <option value="" disabled>Pilih Jenis Kelamin</option>
                     <option value="Laki-laki">Laki-laki</option>
                     <option value="Perempuan">Perempuan</option>
@@ -236,10 +234,6 @@ export default function ApplyPage() {
                 <div className="form-group">
                   <label htmlFor="phone_number">Nomor Telepon IC <span className="required">*</span></label>
                   <input type="text" id="phone_number" value={formData.phone_number} onChange={handleChange} placeholder="Contoh: 555-10293" required />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="origin">Asal Negara Karakter <span className="required">*</span></label>
-                  <input type="text" id="origin" value={formData.origin} onChange={handleChange} placeholder="Contoh: America" required />
                 </div>
                 <div className="form-group full-width">
                   <label htmlFor="experience">Apakah memiliki pengalaman di LEO (Polisi/Sheriff) di server sebelumnya? Jelaskan detail pangkat terakhir. <span className="required">*</span></label>
@@ -259,35 +253,27 @@ export default function ApplyPage() {
 
           {step === 3 && (
             <div className="form-step active">
-              <h3 style={{ fontFamily: 'var(--font-header)', fontSize: '1.1rem', marginBottom: '1rem', color: 'var(--color-gold)' }}>Bagian 3: Kualifikasi Personal & Skenario</h3>
+              <h3 style={{ fontFamily: 'var(--font-header)', fontSize: '1.1rem', marginBottom: '1rem', color: 'var(--color-gold)' }}>Bagian 3: Kualifikasi Personal</h3>
               <div className="form-grid">
                 <div className="form-group full-width">
-                  <label htmlFor="criminal_record">PERNAHKAH ANDA TERLIBAT KASUS KRIMINAL? <span className="required">*</span></label>
+                  <label htmlFor="criminal_record">Pernahkah Anda terlibat kasus kriminal? <span className="required">*</span></label>
                   <textarea id="criminal_record" value={formData.criminal_record} onChange={handleChange} rows={2} placeholder="Jelaskan detail kasus kriminal jika ada, atau ketik 'TIDAK PERNAH'..." required></textarea>
                 </div>
                 <div className="form-group full-width">
-                  <label htmlFor="work_experience_ic">APAKAH ANDA MEMILIKI PENGALAMAN KERJA SEBELUMNYA? <span className="required">*</span></label>
+                  <label htmlFor="work_experience_ic">Apakah memiliki pengalaman kerja sebelumnya? <span className="required">*</span></label>
                   <textarea id="work_experience_ic" value={formData.work_experience_ic} onChange={handleChange} rows={2} placeholder="Sebutkan pekerjaan karakter Anda sebelumnya..." required></textarea>
                 </div>
                 <div className="form-group full-width">
-                  <label htmlFor="motivation_roxwood">KENAPA ANDA INGIN MENDAFTAR DI SHERIFF KERAJAAN ROXWOOD? <span className="required">*</span></label>
+                  <label htmlFor="motivation_roxwood">Kenapa Anda ingin mendaftar di Sheriff Kerajaan Roxwood? <span className="required">*</span></label>
                   <textarea id="motivation_roxwood" value={formData.motivation_roxwood} onChange={handleChange} rows={3} placeholder="Jelaskan alasan mendaftar di Sheriff Kerajaan Roxwood..." required></textarea>
                 </div>
                 <div className="form-group full-width">
-                  <label htmlFor="why_accept_roxwood">MENGAPA KAMI HARUS MENERIMA ANDA MENJADI BAGIAN DARI SHERIFF KERAJAAN ROXWOOD? <span className="required">*</span></label>
+                  <label htmlFor="why_accept_roxwood">Mengapa kami harus menerima Anda menjadi bagian dari Sheriff Kerajaan Roxwood? <span className="required">*</span></label>
                   <textarea id="why_accept_roxwood" value={formData.why_accept_roxwood} onChange={handleChange} rows={3} placeholder="Sebutkan kelebihan Anda dan kontribusi yang akan diberikan..." required></textarea>
                 </div>
                 <div className="form-group full-width">
-                  <label htmlFor="active_hours">JAM AKTIF BERDINAS <span className="required">*</span></label>
+                  <label htmlFor="active_hours">Jam Aktif Berdinas <span className="required">*</span></label>
                   <input type="text" id="active_hours" value={formData.active_hours} onChange={handleChange} placeholder="Contoh: 19:00 - 23:00 WIB" required />
-                </div>
-                <div className="form-group full-width">
-                  <label htmlFor="chain_of_command">Menurut pemahaman Anda, apa itu Chain of Command (Rantai Komando) dan mengapa itu penting? <span className="required">*</span></label>
-                  <textarea id="chain_of_command" value={formData.chain_of_command} onChange={handleChange} rows={3} placeholder="Penjelasan tentang rantai komando..." required></textarea>
-                </div>
-                <div className="form-group full-width">
-                  <label htmlFor="scenario_use_of_force">Skenario: Anda sedang patroli sendirian dan melihat pelaku merampok toko retail menggunakan senjata tajam (pisau). Tindakan apa yang Anda ambil sesuai SOP? <span className="required">*</span></label>
-                  <textarea id="scenario_use_of_force" value={formData.scenario_use_of_force} onChange={handleChange} rows={3} placeholder="Langkah-langkah yang akan Anda ambil..." required></textarea>
                 </div>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '1.5rem' }}>

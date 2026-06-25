@@ -74,9 +74,9 @@ export default function RosterPage() {
       work_experience_ic: 'Manual Entry',
       motivation_roxwood: 'Manual Entry',
       why_accept_roxwood: 'Manual Entry',
-      active_hours: 'Manual Entry',
-      chain_of_command: 'Manual Entry',
-      scenario_use_of_force: 'Manual Entry',
+      origin: '-',
+      chain_of_command: '-',
+      scenario_use_of_force: '-',
       batch: activeBatch,
       status: 'approved',
       created_at: new Date().toISOString()
@@ -237,11 +237,10 @@ export default function RosterPage() {
                 <div className="detail-label-value"><span>Nama Karakter</span><span><strong>{selectedMember.ic_name}</strong></span></div>
                 <div className="detail-label-value"><span>Umur Karakter</span><span>{selectedMember.ic_age} Tahun</span></div>
                 <div className="detail-label-value"><span>Nomor HP</span><span>{selectedMember.phone_number}</span></div>
-                <div className="detail-label-value"><span>Asal Negara</span><span>{selectedMember.origin}</span></div>
               </div>
             </div>
             <div className="modal-detail-section">
-              <h4>Kualifikasi & Skenario</h4>
+              <h4>Kualifikasi</h4>
               <div className="modal-question-box">
                 <p>Kasus Kriminal:</p>
                 <p>{selectedMember.criminal_record || '-'}</p>
@@ -261,14 +260,6 @@ export default function RosterPage() {
               <div className="modal-question-box">
                 <p>Jam Aktif:</p>
                 <p>{selectedMember.active_hours || '-'}</p>
-              </div>
-              <div className="modal-question-box">
-                <p>Chain of Command:</p>
-                <p>{selectedMember.chain_of_command}</p>
-              </div>
-              <div className="modal-question-box">
-                <p>Skenario Use of Force:</p>
-                <p>{selectedMember.scenario_use_of_force}</p>
               </div>
             </div>
           </div>
