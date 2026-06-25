@@ -773,7 +773,83 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 2rem;
 }
+.footer-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.footer-left h4 {
+  font-family: var(--font-header);
+  font-size: 1.1rem;
+  color: var(--color-text-primary);
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  line-height: 1.2;
+}
+.footer-left p {
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+  margin: 0;
+  line-height: 1.2;
+}
+.footer-center {
+  text-align: center;
+}
+.footer-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 0.2rem;
+}
+.footer-right p {
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+  margin: 0;
+  line-height: 1.2;
+}
+.credit-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background-color: rgba(212, 175, 55, 0.05);
+  border: 1px solid rgba(212, 175, 55, 0.15);
+  padding: 0.25rem 0.6rem;
+  border-radius: 50px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+  margin-top: 0;
+  margin-bottom: 0.3rem;
+  cursor: pointer;
+  text-decoration: none;
+}
+.credit-badge svg {
+  color: var(--color-gold);
+}
+.credit-badge:hover {
+  background-color: rgba(212, 175, 55, 0.12);
+  border-color: var(--color-gold);
+  color: var(--color-gold);
+  box-shadow: 0 0 10px rgba(212, 175, 55, 0.1);
+  transform: translateY(-1px);
+}
+@media (max-width: 768px) {
+  .footer-container {
+    flex-direction: column;
+    text-align: center;
+    gap: 1.5rem;
+  }
+  .footer-right {
+    align-items: center;
+  }
+}
+
 
 /* ==========================================
    MOBILE NAV
@@ -1008,3 +1084,211 @@ body {
   margin-bottom: 0.25rem;
 }
 .decision-box p { font-size: 0.8rem; color: var(--color-text-secondary); }
+
+/* ==========================================
+   ANIMATIONS & TRANSITIONS (OPTIMIZED)
+   ========================================== */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Page-level fade in */
+.section-container,
+.glass-card,
+.app-card,
+.dashboard-main-content > div {
+  animation: fadeInUp 0.35s ease both;
+}
+
+/* Stagger cards */
+.values-grid > *:nth-child(1) { animation-delay: 0.05s; }
+.values-grid > *:nth-child(2) { animation-delay: 0.10s; }
+.values-grid > *:nth-child(3) { animation-delay: 0.15s; }
+.values-grid > *:nth-child(4) { animation-delay: 0.20s; }
+.divisions-grid > *:nth-child(1) { animation-delay: 0.05s; }
+.divisions-grid > *:nth-child(2) { animation-delay: 0.10s; }
+.divisions-grid > *:nth-child(3) { animation-delay: 0.15s; }
+.divisions-grid > *:nth-child(4) { animation-delay: 0.20s; }
+.divisions-grid > *:nth-child(5) { animation-delay: 0.25s; }
+.divisions-grid > *:nth-child(6) { animation-delay: 0.30s; }
+.divisions-grid > *:nth-child(7) { animation-delay: 0.35s; }
+
+/* ==========================================
+   LOADING SPINNER
+   ========================================== */
+.loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid rgba(255, 255, 255, 0.08);
+  border-top-color: var(--color-gold);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  margin: 2rem auto;
+}
+
+/* ==========================================
+   SKELETON LOADER
+   ========================================== */
+.skeleton {
+  background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%);
+  background-size: 400px 100%;
+  animation: shimmer 1.4s infinite;
+  border-radius: 6px;
+}
+.skeleton-row {
+  height: 48px;
+  margin-bottom: 0.5rem;
+  border-radius: 8px;
+}
+.skeleton-text {
+  height: 14px;
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+}
+
+/* ==========================================
+   EMPTY STATE
+   ========================================== */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  color: var(--color-text-muted);
+  text-align: center;
+  gap: 0.75rem;
+}
+.empty-state svg {
+  opacity: 0.3;
+  width: 48px;
+  height: 48px;
+}
+.empty-state p {
+  font-size: 0.9rem;
+}
+
+/* ==========================================
+   TABLE IMPROVEMENTS
+   ========================================== */
+.roster-table tr {
+  transition: background 0.15s ease;
+}
+.roster-table td strong {
+  color: var(--color-text-primary);
+}
+.roster-table td code {
+  font-size: 0.78rem;
+  background: rgba(255,255,255,0.04);
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  color: var(--color-text-secondary);
+  letter-spacing: 0.3px;
+}
+
+/* ==========================================
+   BUTTON ACTIVE STATE
+   ========================================== */
+.btn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+/* ==========================================
+   FORM LABEL UPPERCASE
+   ========================================== */
+.form-group label {
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+/* ==========================================
+   PROCESSED_BY BADGE IN TABLE
+   ========================================== */
+.processed-by-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 0.2rem 0.5rem;
+  border-radius: 20px;
+  white-space: nowrap;
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ==========================================
+   MODAL ENTRY ANIMATION
+   ========================================== */
+.modal-content {
+  animation: fadeInUp 0.25s ease both;
+}
+
+/* ==========================================
+   SIDEBAR ACTIVE ITEM INDICATOR
+   ========================================== */
+.sidebar-menu-item.active {
+  position: relative;
+}
+.sidebar-menu-item.active::before {
+  content: '';
+  position: absolute;
+  left: -0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 60%;
+  width: 3px;
+  background: var(--color-gold);
+  border-radius: 0 3px 3px 0;
+}
+
+/* ==========================================
+   FORM STEP TRANSITION
+   ========================================== */
+.form-step {
+  animation: fadeInUp 0.3s ease both;
+}
+
+/* ==========================================
+   RESPONSIVE DASHBOARD
+   ========================================== */
+@media (max-width: 1024px) {
+  .dashboard-main-content { padding: 1rem; }
+}
+@media (max-width: 768px) {
+  .roster-table { font-size: 0.78rem; }
+  .roster-table th, .roster-table td { padding: 0.5rem 0.6rem; }
+  .btn-sm { padding: 0.3rem 0.6rem; font-size: 0.75rem; }
+}
+
+/* ==========================================
+   HOMEPAGE GRID (RESPONSIVE)
+   ========================================== */
+.home-sections-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+}
+@media (max-width: 768px) {
+  .home-sections-grid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+}
+
+

@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/components/Toast';
 import Modal from '@/components/Modal';
-import { Eye, ShieldAlert, XCircle, CheckCircle2, Trash2 } from 'lucide-react';
+import { Eye, ShieldAlert, XCircle, CheckCircle2, Trash2, Inbox } from 'lucide-react';
 
 export default function ApplicationsPage() {
   const { showToast } = useToast();
@@ -11,12 +11,30 @@ export default function ApplicationsPage() {
   const [statusFilter, setStatusFilter] = useState('pending');
   const [selectedApp, setSelectedApp] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [adminEmail, setAdminEmail] = useState('System Admin');
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Reject Modal State
+  const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
+  const [rejectReason, setRejectReason] = useState('');
+  const [appToReject, setAppToReject] = useState<any>(null);
+  const [isSubmittingReject, setIsSubmittingReject] = useState(false);
+  const [isSubmittingApprove, setIsSubmittingApprove] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user?.email) {
+        setAdminEmail(session.user.email);
+      }
+    });
+  }, []);
 
   useEffect(() => {
     loadApplications();
   }, [statusFilter]);
 
   async function loadApplications() {
+    setIsLoading(true);
     try {
       let query = supabase.from('applications').select('*');
       if (statusFilter !== 'all') {
@@ -27,6 +45,8 @@ export default function ApplicationsPage() {
       setApps(data || []);
     } catch (err: any) {
       showToast('Gagal memuat pendaftaran dari database cloud.', 'error');
+    } finally {
+      setIsLoading(false);
     }
   }
 
@@ -39,9 +59,13 @@ export default function ApplicationsPage() {
   const handleApprove = async (app: any) => {
     if (!confirm(`Apakah Anda yakin ingin MENERIMA pendaftaran dari ${app.ic_name}?`)) return;
 
+    setIsSubmittingApprove(true);
     try {
-      // 1. Update status
-      const { error: appErr } = await supabase.from('applications').update({ status: 'approved' }).eq('id', app.id);
+      // 1. Update status and processed_by
+      const { error: appErr } = await supabase.from('applications').update({ 
+        status: 'approved',
+        processed_by: adminEmail
+      }).eq('id', app.id);
       if (appErr) throw appErr;
 
       // 2. Insert to roster (optional but good practice)
@@ -62,27 +86,42 @@ export default function ApplicationsPage() {
       loadApplications();
     } catch (err: any) {
       showToast('Gagal menyetujui formulir.', 'error');
+    } finally {
+      setIsSubmittingApprove(false);
     }
   };
 
-  const handleReject = async (app: any) => {
-    const reason = prompt("Masukkan alasan penolakan (opsional):");
-    if (reason === null) return;
-    const finalReason = reason.trim() || "Ditolak oleh Administrator";
+  const handleRejectClick = (app: any) => {
+    setAppToReject(app);
+    setRejectReason('');
+    setIsRejectModalOpen(true);
+  };
 
+  const handleRejectSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!appToReject) return;
+    const finalReason = rejectReason.trim() || "Ditolak oleh Administrator";
+
+    setIsSubmittingReject(true);
     try {
       const { error } = await supabase.from('applications').update({
         status: 'rejected',
-        rejection_reason: finalReason
-      }).eq('id', app.id);
+        rejection_reason: finalReason,
+        processed_by: adminEmail
+      }).eq('id', appToReject.id);
       if (error) throw error;
 
-      logActivity(`Pimpinan menolak formulir <strong>${app.ic_name}</strong>. Alasan: ${finalReason}`);
+      logActivity(`Pimpinan menolak formulir <strong>${appToReject.ic_name}</strong>. Alasan: ${finalReason}`);
       showToast('Formulir telah ditolak.', 'info');
+      setIsRejectModalOpen(false);
+      setAppToReject(null);
+      setRejectReason('');
       setIsModalOpen(false);
       loadApplications();
     } catch (err: any) {
       showToast('Gagal menolak formulir.', 'error');
+    } finally {
+      setIsSubmittingReject(false);
     }
   };
 
@@ -108,7 +147,12 @@ export default function ApplicationsPage() {
   return (
     <div>
       <div className="header-action-row">
-        <h2 className="dashboard-title">Evaluasi Formulir Pendaftaran</h2>
+        <h2 className="dashboard-title">
+          Evaluasi Formulir Pendaftaran
+          <span style={{ marginLeft: '0.75rem', fontSize: '0.8rem', background: 'var(--color-bg-card)', padding: '0.2rem 0.6rem', borderRadius: '12px', border: '1px solid var(--color-border-custom)', color: 'var(--color-text-secondary)' }}>
+            {isLoading ? '...' : `${apps.length} formulir`}
+          </span>
+        </h2>
         <div className="filter-actions">
           <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
             <option value="pending">Menunggu Review</option>
@@ -119,11 +163,20 @@ export default function ApplicationsPage() {
         </div>
       </div>
 
-      <div className="applications-list-wrapper">
-        {apps.length === 0 ? (
-          <div className="no-data-msg">Tidak ada formulir pendaftaran ditemukan untuk filter ini.</div>
-        ) : (
-          apps.map((app) => (
+      {isLoading ? (
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '300px', gap: '1rem' }}>
+          <div className="loading-spinner" />
+          <p style={{ color: 'var(--color-text-muted)', fontSize: '0.85rem' }}>Memuat daftar pendaftaran...</p>
+        </div>
+      ) : apps.length === 0 ? (
+        <div className="empty-state">
+          <Inbox />
+          <h3>Tidak Ada Pendaftaran</h3>
+          <p>Tidak ada formulir pendaftaran ditemukan dengan status '{statusFilter}'.</p>
+        </div>
+      ) : (
+        <div className="applications-list-wrapper">
+          {apps.map((app) => (
             <div key={app.id} className="glass-card app-card">
               <div className="app-info-left">
                 <div className="app-name-row">
@@ -145,10 +198,11 @@ export default function ApplicationsPage() {
                 </button>
               </div>
             </div>
-          ))
-        )}
-      </div>
+          ))}
+        </div>
+      )}
 
+      {/* Main Detail Modal */}
       <Modal
         open={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -156,11 +210,11 @@ export default function ApplicationsPage() {
         footer={
           selectedApp?.status === 'pending' ? (
             <>
-              <button className="btn btn-secondary" onClick={() => handleReject(selectedApp)}>
+              <button className="btn btn-secondary" onClick={() => handleRejectClick(selectedApp)} disabled={isSubmittingApprove}>
                 Tolak Formulir <XCircle size={16} />
               </button>
-              <button className="btn btn-success" onClick={() => handleApprove(selectedApp)}>
-                Terima Formulir <CheckCircle2 size={16} />
+              <button className="btn btn-success" onClick={() => handleApprove(selectedApp)} disabled={isSubmittingApprove}>
+                {isSubmittingApprove ? 'Memproses...' : 'Terima Formulir'} <CheckCircle2 size={16} />
               </button>
             </>
           ) : selectedApp?.status === 'approved' ? (
@@ -259,15 +313,15 @@ export default function ApplicationsPage() {
             <div className="modal-detail-section">
               <h4>Kualifikasi Personal</h4>
               <div className="modal-question-box">
-                <p>Kasus Kriminal:</p>
+                <p>Pernahkah Anda terlibat kasus kriminal?</p>
                 <p>{selectedApp.criminal_record || '-'}</p>
               </div>
               <div className="modal-question-box">
-                <p>Pengalaman Kerja Sebelumnya:</p>
+                <p>Apakah memiliki pengalaman kerja sebelumnya?</p>
                 <p>{selectedApp.work_experience_ic || '-'}</p>
               </div>
               <div className="modal-question-box">
-                <p>Kenapa ingin mendaftar di Sheriff Kerajaan Roxwood?</p>
+                <p>Kenapa Anda ingin mendaftar di Sheriff Kerajaan Roxwood?</p>
                 <p>{selectedApp.motivation_roxwood || '-'}</p>
               </div>
               <div className="modal-question-box">
@@ -275,7 +329,7 @@ export default function ApplicationsPage() {
                 <p>{selectedApp.why_accept_roxwood || '-'}</p>
               </div>
               <div className="modal-question-box">
-                <p>Jam Aktif Berdinas:</p>
+                <p>Jam Aktif Di Kota:</p>
                 <p>{selectedApp.active_hours || '-'}</p>
               </div>
             </div>
@@ -284,10 +338,53 @@ export default function ApplicationsPage() {
               <div className="decision-box reject">
                 <h4>Alasan Penolakan Formulir:</h4>
                 <p>{selectedApp.rejection_reason || 'Tidak ada alasan yang diberikan.'}</p>
+                <div style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
+                  Ditolak oleh: {selectedApp.processed_by || 'Admin'}
+                </div>
+              </div>
+            )}
+            
+            {selectedApp.status === 'approved' && (
+              <div className="decision-box" style={{ background: 'rgba(16, 185, 129, 0.05)', border: '1px solid rgba(16, 185, 129, 0.2)', padding: '1rem', borderRadius: '8px', marginTop: '1rem' }}>
+                <h4 style={{ color: 'var(--color-success)', fontSize: '0.85rem', marginBottom: '0.25rem' }}>Status Formulir: Diterima</h4>
+                <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
+                  Diproses oleh: {selectedApp.processed_by || 'Admin'}
+                </div>
               </div>
             )}
           </div>
         )}
+      </Modal>
+
+      {/* Custom Reject Reason Modal */}
+      <Modal
+        open={isRejectModalOpen}
+        onClose={() => setIsRejectModalOpen(false)}
+        title="Alasan Penolakan Formulir"
+        footer={null}
+      >
+        <form onSubmit={handleRejectSubmit}>
+          <div className="form-group" style={{ marginBottom: '1.25rem' }}>
+            <label htmlFor="reject-reason-input">Berikan Alasan Penolakan <span className="required">*</span></label>
+            <textarea
+              id="reject-reason-input"
+              rows={4}
+              value={rejectReason}
+              onChange={(e) => setRejectReason(e.target.value)}
+              placeholder="Contoh: Jawaban kualifikasi personal kurang lengkap / KTP/Steam HEX tidak valid."
+              required
+              style={{ width: '100%' }}
+            />
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+            <button type="button" className="btn btn-secondary" onClick={() => setIsRejectModalOpen(false)} disabled={isSubmittingReject}>
+              Batal
+            </button>
+            <button type="submit" className="btn btn-danger" disabled={isSubmittingReject}>
+              {isSubmittingReject ? 'Memproses...' : 'Tolak Pendaftaran'}
+            </button>
+          </div>
+        </form>
       </Modal>
     </div>
   );

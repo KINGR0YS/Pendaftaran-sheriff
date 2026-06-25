@@ -77,7 +77,7 @@ export default function HomePage() {
         </div>
 
         {/* TIMELINE + REQUIREMENTS */}
-        <div style={{ marginTop: '4rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '3rem' }}>
+        <div className="home-sections-grid" style={{ marginTop: '4rem' }}>
           <div>
             <h2 className="section-title" style={{ textAlign: 'left' }}>Alur Penerimaan</h2>
             <p className="section-subtitle" style={{ textAlign: 'left', margin: '0.5rem 0 2rem 0' }}>Tahapan seleksi penerimaan anggota Sheriff Roxwood.</p>

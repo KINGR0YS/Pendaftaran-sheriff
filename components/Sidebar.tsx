@@ -16,7 +16,7 @@ const sidebarItems = [
 
 export default function Sidebar() {
   const pathname = usePathname();
-  const [displayName, setDisplayName] = useState('Commanding Officer');
+  const [displayName, setDisplayName] = useState('DISMAG ON FIRE');
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -25,7 +25,7 @@ export default function Sidebar() {
       const name = user.user_metadata?.display_name
         || user.user_metadata?.full_name
         || user.email?.split('@')[0]
-        || 'Commanding Officer';
+        || 'DISMAG ON FIRE';
       setDisplayName(name);
     });
   }, []);
@@ -39,7 +39,7 @@ export default function Sidebar() {
           </div>
           <div style={{ minWidth: 0 }}>
             <h4 style={{ fontSize: '0.85rem', color: 'var(--color-text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{displayName}</h4>
-            <span style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)' }}>Commanding Officer</span>
+            <span style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)' }}>DISMAG ON FIRE</span>
           </div>
         </div>
       </div>

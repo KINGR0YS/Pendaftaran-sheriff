@@ -2,12 +2,13 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/components/Toast';
-import { ChevronRight, ChevronLeft, Check } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Check, MessageSquare, ExternalLink, AlertTriangle, ArrowRight, CheckCircle2 } from 'lucide-react';
 
 export default function ApplyPage() {
   const { showToast } = useToast();
   const [step, setStep] = useState(1);
   const [activeBatch, setActiveBatch] = useState('1');
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const [formData, setFormData] = useState({
     ooc_name: '',
@@ -124,11 +125,8 @@ export default function ApplyPage() {
     try {
       const { error } = await supabase.from('applications').insert([payload]);
       if (error) throw error;
-      showToast('Pendaftaran Anda berhasil dikirim! Silakan tunggu evaluasi pimpinan.', 'success');
       localStorage.removeItem('allowApplyAccess');
-      setTimeout(() => {
-        window.location.href = '/';
-      }, 1000);
+      setShowSuccessModal(true);
     } catch (err: any) {
       showToast(`Gagal mengirim pendaftaran: ${err.message}`, 'error');
     }
@@ -272,7 +270,7 @@ export default function ApplyPage() {
                   <textarea id="why_accept_roxwood" value={formData.why_accept_roxwood} onChange={handleChange} rows={3} placeholder="Sebutkan kelebihan Anda dan kontribusi yang akan diberikan..." required></textarea>
                 </div>
                 <div className="form-group full-width">
-                  <label htmlFor="active_hours">Jam Aktif Berdinas <span className="required">*</span></label>
+                  <label htmlFor="active_hours">Jam Aktif Di Kota <span className="required">*</span></label>
                   <input type="text" id="active_hours" value={formData.active_hours} onChange={handleChange} placeholder="Contoh: 19:00 - 23:00 WIB" required />
                 </div>
               </div>
@@ -288,6 +286,43 @@ export default function ApplyPage() {
           )}
         </form>
       </div>
+
+      {showSuccessModal && (
+        <div className="modal open" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.7)', zIndex: 1000, padding: '1rem' }}>
+          <div className="modal-content glass-card success-notification-box" style={{ maxWidth: '500px', width: '100%', textAlign: 'center', padding: '2.5rem', border: '1px solid rgba(16, 185, 129, 0.2)', backgroundColor: 'var(--color-bg-card, #111)', borderRadius: '16px' }}>
+            <div className="success-notification-icon" style={{ fontSize: '3rem', color: 'var(--color-success)', marginBottom: '1.25rem' }}>
+              <CheckCircle2 style={{ width: '72px', height: '72px', margin: '0 auto', color: 'var(--color-success)' }} />
+            </div>
+            <h3 style={{ fontSize: '1.6rem', marginBottom: '0.5rem', color: '#fff', fontWeight: 700, fontFamily: 'Outfit, sans-serif' }}>Pendaftaran Berhasil Dikirim!</h3>
+            <p style={{ color: 'var(--color-text-secondary, #aaa)', fontSize: '0.95rem', marginBottom: '2rem' }}>Terima kasih telah mendaftar di Biro Administrasi Sheriff Kerajaan Roxwood.</p>
+
+            {/* Discord Box */}
+            <div style={{ background: 'rgba(88, 101, 242, 0.08)', border: '1px solid rgba(88, 101, 242, 0.25)', padding: '1.5rem', borderRadius: '12px', marginBottom: '1.5rem', textAlign: 'left', boxShadow: '0 4px 12px rgba(88, 101, 242, 0.05)' }}>
+              <h4 style={{ color: '#7289da', marginTop: 0, marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                <MessageSquare style={{ width: '18px', height: '18px' }} /> MASUK LINK DISCORD PROBATUS
+              </h4>
+              <a href="https://discord.gg/DqZxnF5zbr" target="_blank" rel="noopener noreferrer" className="btn" style={{ backgroundColor: '#5865F2', color: 'white', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', width: '100%', textDecoration: 'none', padding: '0.85rem', borderRadius: '8px', fontWeight: 700, marginBottom: '0.5rem', transition: 'background 0.2s', boxShadow: '0 4px 12px rgba(88, 101, 242, 0.2)' }}>
+                Hubungkan ke Discord <ExternalLink style={{ width: '16px', height: '16px' }} />
+              </a>
+            </div>
+
+            {/* Interview Information */}
+            <div style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.06)', padding: '1.5rem', borderRadius: '12px', marginBottom: '2rem', textAlign: 'left', fontSize: '0.95rem', lineHeight: '1.6' }}>
+              <p style={{ marginTop: 0, marginBottom: '0.85rem', color: 'var(--color-text-primary, #fff)' }}>
+                Bagi yang sudah mengisi formulir, bisa langsung datang ke <strong>kantor sheriff Kerajaan Roxwood (Koordinat 928)</strong> untuk melakukan interview.
+              </p>
+              <div style={{ background: 'rgba(245, 158, 11, 0.08)', borderLeft: '4px solid #f59e0b', padding: '0.85rem', borderRadius: '6px', fontSize: '0.9rem', color: '#fbbf24', display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
+                <AlertTriangle style={{ width: '18px', height: '18px', flexShrink: 0, marginTop: '2px' }} />
+                <span>Jangan lupa untuk membawa/membuat dokumen wajib berikut: <strong>SKCS, Surat Kesehatan, dan SIM Roxwood</strong>.</span>
+              </div>
+            </div>
+
+            <button type="button" className="btn btn-success" onClick={() => window.location.href = '/'} style={{ width: '100%', padding: '0.85rem', fontWeight: 700, borderRadius: '8px', cursor: 'pointer' }}>
+              Saya Mengerti & Kembali <ArrowRight style={{ width: '16px', height: '16px', display: 'inline-block', verticalAlign: 'middle', marginLeft: '4px' }} />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

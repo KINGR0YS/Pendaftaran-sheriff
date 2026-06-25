@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/components/Toast';
 import Modal from '@/components/Modal';
-import { Eye } from 'lucide-react';
+import { Eye, Inbox, Search } from 'lucide-react';
 
 export default function RejectedPage() {
   const { showToast } = useToast();
@@ -11,10 +11,12 @@ export default function RejectedPage() {
   const [search, setSearch] = useState('');
   const [selectedApp, setSelectedApp] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => { loadRejected(); }, []);
 
   async function loadRejected() {
+    setIsLoading(true);
     try {
       const { data, error } = await supabase
         .from('applications')
@@ -25,6 +27,8 @@ export default function RejectedPage() {
       setRejected(data || []);
     } catch (err) {
       showToast('Gagal memuat data dari database cloud.', 'error');
+    } finally {
+      setIsLoading(false);
     }
   }
 
@@ -36,34 +40,57 @@ export default function RejectedPage() {
 
   return (
     <div>
-      <h2 className="dashboard-title">Riwayat Formulir Ditolak</h2>
+      <div className="header-action-row">
+        <h2 className="dashboard-title">
+          Riwayat Formulir Ditolak
+          <span style={{ marginLeft: '0.75rem', fontSize: '0.8rem', background: 'var(--color-bg-card)', padding: '0.2rem 0.6rem', borderRadius: '12px', border: '1px solid var(--color-border-custom)', color: 'var(--color-text-secondary)' }}>
+            {isLoading ? '...' : `${rejected.length} formulir`}
+          </span>
+        </h2>
+      </div>
 
       <div className="search-input-wrapper" style={{ maxWidth: 400 }}>
+        <Search size={16} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)' }} />
         <input
           type="text"
           placeholder="Cari berdasarkan nama..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
+          style={{ paddingLeft: '2.25rem' }}
         />
       </div>
 
-      <div className="table-responsive">
-        <table className="roster-table">
-          <thead>
-            <tr>
-              <th>Nama Karakter</th>
-              <th>Nama OOC</th>
-              <th>Discord ID</th>
-              <th>Alasan Penolakan</th>
-              <th>Tanggal Penolakan</th>
-              <th>Aksi</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.length === 0 ? (
-              <tr><td colSpan={6} className="text-center">Belum ada riwayat penolakan.</td></tr>
-            ) : (
-              filtered.map(app => (
+      {isLoading ? (
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '300px', gap: '1rem' }}>
+          <div className="loading-spinner" />
+          <p style={{ color: 'var(--color-text-muted)', fontSize: '0.85rem' }}>Memuat riwayat penolakan...</p>
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="empty-state">
+          <Inbox />
+          <h3>Tidak Ada Riwayat</h3>
+          <p>
+            {rejected.length === 0
+              ? 'Belum ada formulir pendaftaran yang ditolak.'
+              : 'Tidak ditemukan riwayat penolakan yang cocok dengan pencarian Anda.'}
+          </p>
+        </div>
+      ) : (
+        <div className="table-responsive">
+          <table className="roster-table">
+            <thead>
+              <tr>
+                <th>Nama Karakter</th>
+                <th>Nama OOC</th>
+                <th>Discord ID</th>
+                <th>Alasan Penolakan</th>
+                <th>Tanggal Penolakan</th>
+                <th>Ditolak Oleh</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map(app => (
                 <tr key={app.id}>
                   <td><strong>{app.ic_name}</strong></td>
                   <td>{app.ooc_name || '-'}</td>
@@ -73,16 +100,21 @@ export default function RejectedPage() {
                   </td>
                   <td>{new Date(app.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</td>
                   <td>
+                    <span className="processed-by-badge" title={app.processed_by || 'Admin'}>
+                      {app.processed_by || 'Admin'}
+                    </span>
+                  </td>
+                  <td>
                     <button className="btn btn-secondary btn-sm" onClick={() => { setSelectedApp(app); setIsModalOpen(true); }}>
                       <Eye size={14} /> Lihat Detail
                     </button>
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       <Modal
         open={isModalOpen}
@@ -109,6 +141,9 @@ export default function RejectedPage() {
             <div className="decision-box reject">
               <h4>Alasan Penolakan:</h4>
               <p>{selectedApp.rejection_reason || 'Tidak ada alasan yang diberikan.'}</p>
+              <div style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
+                Ditolak oleh: {selectedApp.processed_by || 'Admin'}
+              </div>
             </div>
           </div>
         )}

@@ -20,8 +20,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 'calc(100vh - 70px)' }}>
-        <p style={{ color: 'var(--color-text-muted)' }}>Memuat dashboard...</p>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 'calc(100vh - 70px)', gap: '1rem' }}>
+        <div className="loading-spinner" />
+        <p style={{ color: 'var(--color-text-muted)', fontSize: '0.85rem' }}>Mengautentikasi sesi admin...</p>
       </div>
     );
   }

@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/components/Toast';
 import Modal from '@/components/Modal';
-import { UserPlus, Eye, Search } from 'lucide-react';
+import { UserPlus, Eye, Search, Inbox } from 'lucide-react';
 
 export default function RosterPage() {
   const { showToast } = useToast();
@@ -13,6 +13,8 @@ export default function RosterPage() {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState<any>(null);
   const [activeBatch, setActiveBatch] = useState('1');
+  const [adminEmail, setAdminEmail] = useState('System Admin');
+  const [isLoading, setIsLoading] = useState(true);
 
   const [form, setForm] = useState({
     ic_name: '',
@@ -22,11 +24,20 @@ export default function RosterPage() {
   });
 
   useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user?.email) {
+        setAdminEmail(session.user.email);
+      }
+    });
+  }, []);
+
+  useEffect(() => {
     loadRoster();
     setActiveBatch(localStorage.getItem('active_batch') || '1');
   }, []);
 
   async function loadRoster() {
+    setIsLoading(true);
     try {
       const { data, error } = await supabase
         .from('applications')
@@ -37,6 +48,8 @@ export default function RosterPage() {
       setRoster(data || []);
     } catch (err) {
       showToast('Gagal memuat data dari database cloud.', 'error');
+    } finally {
+      setIsLoading(false);
     }
   }
 
@@ -79,6 +92,7 @@ export default function RosterPage() {
       scenario_use_of_force: '-',
       batch: activeBatch,
       status: 'approved',
+      processed_by: adminEmail,
       created_at: new Date().toISOString()
     };
 
@@ -98,7 +112,12 @@ export default function RosterPage() {
   return (
     <div>
       <div className="header-action-row">
-        <h2 className="dashboard-title">Direktori Probatus Roxwood</h2>
+        <h2 className="dashboard-title">
+          Direktori Probatus Roxwood
+          <span style={{ marginLeft: '0.75rem', fontSize: '0.8rem', background: 'var(--color-bg-card)', padding: '0.2rem 0.6rem', borderRadius: '12px', border: '1px solid var(--color-border-custom)', color: 'var(--color-text-secondary)' }}>
+            {isLoading ? '...' : `${roster.length} Probatus`}
+          </span>
+        </h2>
         <button className="btn btn-sm btn-success" onClick={() => setIsAddModalOpen(true)}>
           <UserPlus size={14} /> Tambah Anggota Manual
         </button>
@@ -115,23 +134,37 @@ export default function RosterPage() {
         />
       </div>
 
-      <div className="table-responsive">
-        <table className="roster-table">
-          <thead>
-            <tr>
-              <th>Nama Karakter</th>
-              <th>Steam HEX Code</th>
-              <th>Jenis Kelamin</th>
-              <th>Tanggal Lahir IC</th>
-              <th>Angkatan</th>
-              <th>Aksi</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.length === 0 ? (
-              <tr><td colSpan={6} className="text-center">Belum ada anggota terdaftar.</td></tr>
-            ) : (
-              filtered.map(member => (
+      {isLoading ? (
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '300px', gap: '1rem' }}>
+          <div className="loading-spinner" />
+          <p style={{ color: 'var(--color-text-muted)', fontSize: '0.85rem' }}>Memuat daftar roster...</p>
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="empty-state">
+          <Inbox />
+          <h3>Tidak Ada Probatus</h3>
+          <p>
+            {roster.length === 0
+              ? 'Belum ada anggota yang terdaftar/diterima.'
+              : 'Tidak ditemukan anggota yang cocok dengan pencarian Anda.'}
+          </p>
+        </div>
+      ) : (
+        <div className="table-responsive">
+          <table className="roster-table">
+            <thead>
+              <tr>
+                <th>Nama Karakter</th>
+                <th>Steam HEX Code</th>
+                <th>Jenis Kelamin</th>
+                <th>Tanggal Lahir IC</th>
+                <th>Angkatan</th>
+                <th>Diterima Oleh</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map(member => (
                 <tr key={member.id}>
                   <td><strong>{member.ic_name}</strong></td>
                   <td><code>{member.steam_hex || '-'}</code></td>
@@ -139,16 +172,21 @@ export default function RosterPage() {
                   <td>{member.ic_dob || '-'}</td>
                   <td>Angkatan {member.batch || '1'}</td>
                   <td>
+                    <span className="processed-by-badge" title={member.processed_by || 'Admin'}>
+                      {member.processed_by || 'Admin'}
+                    </span>
+                  </td>
+                  <td>
                     <button className="btn btn-primary btn-sm" onClick={() => { setSelectedMember(member); setIsDetailModalOpen(true); }}>
                       <Eye size={14} /> Lihat Detail
                     </button>
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {/* Add Member Modal */}
       <Modal
@@ -242,24 +280,31 @@ export default function RosterPage() {
             <div className="modal-detail-section">
               <h4>Kualifikasi</h4>
               <div className="modal-question-box">
-                <p>Kasus Kriminal:</p>
+                <p>Pernahkah Anda terlibat kasus kriminal?</p>
                 <p>{selectedMember.criminal_record || '-'}</p>
               </div>
               <div className="modal-question-box">
-                <p>Pengalaman Kerja:</p>
+                <p>Apakah memiliki pengalaman kerja sebelumnya?</p>
                 <p>{selectedMember.work_experience_ic || '-'}</p>
               </div>
               <div className="modal-question-box">
-                <p>Motivasi:</p>
+                <p>Kenapa Anda ingin mendaftar di Sheriff Kerajaan Roxwood?</p>
                 <p>{selectedMember.motivation_roxwood || '-'}</p>
               </div>
               <div className="modal-question-box">
-                <p>Kenapa Diterima:</p>
+                <p>Mengapa kami harus menerima Anda menjadi bagian dari Sheriff Kerajaan Roxwood?</p>
                 <p>{selectedMember.why_accept_roxwood || '-'}</p>
               </div>
               <div className="modal-question-box">
-                <p>Jam Aktif:</p>
+                <p>Jam Aktif Di Kota:</p>
                 <p>{selectedMember.active_hours || '-'}</p>
+              </div>
+            </div>
+            
+            <div className="decision-box" style={{ background: 'rgba(16, 185, 129, 0.05)', border: '1px solid rgba(16, 185, 129, 0.2)', padding: '1rem', borderRadius: '8px', marginTop: '1rem' }}>
+              <h4 style={{ color: 'var(--color-success)', fontSize: '0.85rem', marginBottom: '0.25rem' }}>Status Formulir: Diterima</h4>
+              <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
+                Diproses oleh: {selectedMember.processed_by || 'Admin'}
               </div>
             </div>
           </div>
