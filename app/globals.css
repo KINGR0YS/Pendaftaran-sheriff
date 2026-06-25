@@ -256,6 +256,10 @@ body {
   background: var(--color-bg-card);
   border-right: 1px solid var(--color-border-custom);
   padding: 1.5rem 0;
+  position: sticky;
+  top: 70px;
+  height: calc(100vh - 70px);
+  overflow-y: auto;
 }
 @media (max-width: 768px) {
   .dashboard-layout { flex-direction: column; }

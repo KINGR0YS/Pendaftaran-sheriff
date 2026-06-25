@@ -17,7 +17,7 @@ const sidebarItems = [
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  const [userEmail, setUserEmail] = useState('admin@roxwood.gov');
+  const [displayName, setDisplayName] = useState('Commanding Officer');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -26,7 +26,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         router.push('/login');
         return;
       }
-      setUserEmail(session.user.email || 'admin@roxwood.gov');
+      const user = session.user;
+      const name = user.user_metadata?.display_name
+        || user.user_metadata?.full_name
+        || user.email?.split('@')[0]
+        || 'Commanding Officer';
+      setDisplayName(name);
       setLoading(false);
     });
   }, [router]);
@@ -48,7 +53,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <Image src="/logo.png" alt="Logo" width={32} height={32} style={{ objectFit: 'contain' }} />
             </div>
             <div>
-              <h4 style={{ fontSize: '0.85rem', color: 'var(--color-text-primary)' }}>{userEmail}</h4>
+              <h4 style={{ fontSize: '0.85rem', color: 'var(--color-text-primary)' }}>{displayName}</h4>
               <span style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)' }}>Commanding Officer</span>
             </div>
           </div>
