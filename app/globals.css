@@ -259,7 +259,8 @@ body {
   position: sticky;
   top: 70px;
   height: calc(100vh - 70px);
-  overflow-y: auto;
+  overflow: hidden;
+  flex-shrink: 0;
 }
 @media (max-width: 768px) {
   .dashboard-layout { flex-direction: column; }
