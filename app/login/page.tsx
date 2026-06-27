@@ -28,10 +28,10 @@ export default function LoginPage() {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
-      showToast('Koneksi aman terjalin. Selamat datang Sheriff!', 'success');
+      showToast('Berhasil masuk! Selamat bekerja.', 'success');
       router.push('/admin');
     } catch (err: any) {
-      showToast(err.message || 'Gagal login. Periksa email/password.', 'error');
+      showToast(err.message || 'Gagal login. Cek lagi email dan password kamu.', 'error');
     } finally {
       setLoading(false);
     }
@@ -40,11 +40,11 @@ export default function LoginPage() {
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (newPassword !== confirmPassword) {
-      showToast('Password baru tidak cocok.', 'error');
+      showToast('Password barunya ga cocok.', 'error');
       return;
     }
     if (newPassword.length < 6) {
-      showToast('Password minimal 6 karakter.', 'error');
+      showToast('Password minimal 6 karakter ya.', 'error');
       return;
     }
     setLoading(true);
@@ -56,7 +56,7 @@ export default function LoginPage() {
       setNewPassword('');
       setConfirmPassword('');
     } catch (err: any) {
-      showToast(err.message || 'Gagal mengubah password.', 'error');
+      showToast(err.message || 'Gagal ganti password.', 'error');
     } finally {
       setLoading(false);
     }
