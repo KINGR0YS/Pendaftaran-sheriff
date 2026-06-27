@@ -1,13 +1,19 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useToast } from '@/components/Toast';
-import { Save, Trash2, Info } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
+import { Save, Trash2, KeyRound } from 'lucide-react';
 
 export default function SettingsPage() {
   const { showToast } = useToast();
   const [recruitmentStatus, setRecruitmentStatus] = useState('open');
   const [activeBatch, setActiveBatch] = useState('1');
   const [systemLogsCount, setSystemLogsCount] = useState(0);
+
+  // Change Password State
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
 
   useEffect(() => {
     setRecruitmentStatus(localStorage.getItem('recruitment_status') || 'open');
@@ -30,7 +36,31 @@ export default function SettingsPage() {
     if (!confirm('Apakah Anda yakin ingin menghapus semua log aktivitas admin? Tindakan ini tidak dapat dibatalkan.')) return;
     localStorage.removeItem('activity_logs');
     setSystemLogsCount(0);
-    showToast('Seluruh log aktivitas admin telah berhasil dihapus.', 'info');
+    showToast('Log aktivitas berhasil dihapus.', 'info');
+  };
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPassword !== confirmPassword) {
+      showToast('Password barunya ga cocok.', 'error');
+      return;
+    }
+    if (newPassword.length < 6) {
+      showToast('Password minimal 6 karakter ya.', 'error');
+      return;
+    }
+    setIsChangingPassword(true);
+    try {
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      if (error) throw error;
+      showToast('Password berhasil diubah!', 'success');
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (err: any) {
+      showToast(err.message || 'Gagal ganti password.', 'error');
+    } finally {
+      setIsChangingPassword(false);
+    }
   };
 
   return (
@@ -76,6 +106,44 @@ export default function SettingsPage() {
             Simpan Pengaturan Rekrutmen <Save size={16} />
           </button>
         </div>
+      </div>
+
+      {/* Ganti Password Section */}
+      <div className="glass-card config-form-box" style={{ marginTop: '2rem' }}>
+        <h3>Ganti Kata Sandi</h3>
+        <p className="config-desc">
+          Perbarui kata sandi akun administratif Anda yang sedang aktif.
+        </p>
+
+        <form onSubmit={handleChangePassword} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', alignItems: 'end' }}>
+          <div className="form-group">
+            <label htmlFor="new-password">Kata Sandi Baru</label>
+            <input
+              type="password"
+              id="new-password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              placeholder="Minimal 6 karakter"
+              required
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="confirm-password">Konfirmasi Kata Sandi</label>
+            <input
+              type="password"
+              id="confirm-password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="Ulangi kata sandi baru"
+              required
+            />
+          </div>
+          <div className="config-actions" style={{ gridColumn: 'span 2', marginTop: '1rem', display: 'flex', justifyContent: 'flex-end' }}>
+            <button type="submit" className="btn btn-primary" disabled={isChangingPassword}>
+              {isChangingPassword ? 'Memproses...' : 'Ubah Kata Sandi'} <KeyRound size={16} />
+            </button>
+          </div>
+        </form>
       </div>
 
       {/* System Settings & Version Info */}
