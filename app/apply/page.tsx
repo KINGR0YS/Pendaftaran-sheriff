@@ -294,7 +294,7 @@ export default function ApplyPage() {
               <CheckCircle2 style={{ width: '72px', height: '72px', margin: '0 auto', color: 'var(--color-success)' }} />
             </div>
             <h3 style={{ fontSize: '1.6rem', marginBottom: '0.5rem', color: '#fff', fontWeight: 700, fontFamily: 'Outfit, sans-serif' }}>Pendaftaran Berhasil Dikirim!</h3>
-            <p style={{ color: 'var(--color-text-secondary, #aaa)', fontSize: '0.95rem', marginBottom: '2rem' }}>Terima kasih telah mendaftar di Biro Administrasi Sheriff Kerajaan Roxwood.</p>
+            <p style={{ color: 'var(--color-text-secondary, #aaa)', fontSize: '0.95rem', marginBottom: '2rem' }}>Terimakasih telah mendaftar untuk menjadi bagian dari Sheriff kerajaan roxwood.</p>
 
             {/* Discord Box */}
             <div style={{ background: 'rgba(88, 101, 242, 0.08)', border: '1px solid rgba(88, 101, 242, 0.25)', padding: '1.5rem', borderRadius: '12px', marginBottom: '1.5rem', textAlign: 'left', boxShadow: '0 4px 12px rgba(88, 101, 242, 0.05)' }}>
@@ -313,7 +313,7 @@ export default function ApplyPage() {
               </p>
               <div style={{ background: 'rgba(245, 158, 11, 0.08)', borderLeft: '4px solid #f59e0b', padding: '0.85rem', borderRadius: '6px', fontSize: '0.9rem', color: '#fbbf24', display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
                 <AlertTriangle style={{ width: '18px', height: '18px', flexShrink: 0, marginTop: '2px' }} />
-                <span>Jangan lupa untuk membawa/membuat dokumen wajib berikut: <strong>SKCS, Surat Kesehatan, dan SIM Roxwood</strong>.</span>
+                <span>Jangan lupa untuk membawa/membuat dokumen wajib berikut: <strong>KTP, SKCS, Surat Kesehatan, dan SIM Roxwood</strong>.</span>
               </div>
             </div>
 

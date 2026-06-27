@@ -69,10 +69,13 @@ export default function LoginPage() {
 
       <div className="login-container glass-card">
         <div className="login-header">
-          <Image src="/logo.png" alt="Roxwood Sheriff Logo" width={115} height={115} style={{ objectFit: 'contain', marginBottom: '1.5rem', filter: 'drop-shadow(0 0 10px rgba(212, 175, 55, 0.25))' }} />
-          <h2>{mode === 'login' ? 'Sheriff Access Center' : 'Ubah Kata Sandi'}</h2>
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1.5rem', marginBottom: '1.5rem' }}>
+            <Image src="/logo.png" alt="Roxwood Sheriff Logo" width={100} height={100} style={{ objectFit: 'contain', filter: 'drop-shadow(0 0 10px rgba(212, 175, 55, 0.25))' }} />
+            <Image src="/logo-dismag.png" alt="DISMAG Logo" width={100} height={100} style={{ objectFit: 'contain', filter: 'drop-shadow(0 0 10px rgba(212, 175, 55, 0.25))' }} />
+          </div>
+          <h2>{mode === 'login' ? 'Akses database Probatus' : 'Ubah Kata Sandi'}</h2>
           <p>{mode === 'login'
-            ? 'Silakan masuk menggunakan kredensial Biro Administrasi Sheriff Kerajaan Roxwood Anda.'
+            ? 'Silahkan login menggunakan akun yang sudah di siapkan untuk mengakses database.'
             : 'Masukkan password baru untuk akun Anda.'
           }</p>
         </div>
@@ -168,9 +171,9 @@ export default function LoginPage() {
         )}
 
         <div style={{ marginTop: '1.5rem', padding: '1rem', background: 'rgba(239, 68, 68, 0.05)', border: '1px solid rgba(239, 68, 68, 0.2)', borderRadius: 8 }}>
-          <h4 style={{ fontSize: '0.85rem', color: 'var(--color-error)', marginBottom: '0.25rem' }}>Peringatan Otoritas Keamanan</h4>
+          <h4 style={{ fontSize: '0.85rem', color: 'var(--color-error)', marginBottom: '0.25rem' }}>Peringatan</h4>
           <p style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)' }}>
-            Akses ini dilindungi oleh undang-undang Departemen Hukum Kerajaan Roxwood. Segala bentuk pelanggaran akses ilegal akan dilacak dan ditindak secara tegas baik IC maupun OOC.
+            Gunakan akses dengan bijak jangan mengedit atau menghapus data tanpa konfirmasi Anggota Dismag lain nya.
           </p>
         </div>
 
