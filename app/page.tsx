@@ -119,7 +119,7 @@ export default function HomePage() {
         </div>
 
         {/* CTA */}
-        <div className="glass-card" style={{ marginTop: '4rem', textAlign: 'center', padding: '3rem 2rem' }}>
+        <div id="cta" className="glass-card" style={{ marginTop: '4rem', textAlign: 'center', padding: '3rem 2rem' }}>
           <h2 style={{ fontFamily: 'var(--font-header)', fontSize: '2.2rem', color: 'var(--color-gold)', textTransform: 'uppercase', marginBottom: '1rem', letterSpacing: 1 }}>
             Siap Mengabdi untuk Kerajaan?
           </h2>

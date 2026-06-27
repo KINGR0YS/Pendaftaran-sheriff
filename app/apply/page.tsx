@@ -49,6 +49,9 @@ export default function ApplyPage() {
       window.location.href = '/';
       return;
     }
+
+    // Reset izin agar tidak bisa di-bypass dengan reload atau bookmark langsung
+    localStorage.removeItem('allowApplyAccess');
   }, [showToast]);
 
   const handleChange = (e: any) => {

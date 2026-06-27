@@ -45,7 +45,7 @@ export default function Navbar() {
           <Link href="/" className={`nav-link ${pathname === '/' ? 'active' : ''}`} onClick={() => setMobileOpen(false)}>
             Halaman Utama
           </Link>
-          <Link href="/apply" className={`nav-link ${pathname === '/apply' ? 'active' : ''}`} onClick={() => setMobileOpen(false)}>
+          <Link href="/#cta" className={`nav-link ${pathname === '/apply' ? 'active' : ''}`} onClick={() => setMobileOpen(false)}>
             Pendaftaran
           </Link>
           {!user ? (
