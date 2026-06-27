@@ -192,7 +192,7 @@ export default function SettingsPage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', marginTop: '0.25rem', fontSize: '0.8rem', color: 'var(--color-text-secondary)' }}>
               <div>Versi Aplikasi: <strong>v2.0.2</strong></div>
               <div>Database: <strong>cloud database</strong></div>
-              <div>di Direct by : <strong>Cimolbojot</strong></div>
+              <div>Direct by : <strong>Cimolbojot</strong></div>
             </div>
           </div>
         </div>
