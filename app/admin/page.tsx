@@ -127,7 +127,7 @@ export default function AdminStatsPage() {
         <div className="glass-card section-card">
           <h3>Informasi Sistem Database</h3>
           <div className="info-content-box">
-            <p>Situs web terhubung ke: <strong style={{ color: 'var(--color-success)' }}>Supabase Cloud Database</strong></p>
+            <p>Situs web terhubung ke: <strong style={{ color: 'var(--color-success)' }}>cloud database</strong></p>
             <div style={{ marginTop: '1rem', padding: '0.75rem', background: 'rgba(255,255,255,0.02)', borderRadius: 8, border: '1px solid var(--color-border-custom)' }}>
               <p style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', margin: 0 }}>
                 Versi Aplikasi: <strong style={{ color: 'var(--color-text-secondary)' }}>v2.0</strong> — Sheriff Recruitment System
