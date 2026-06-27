@@ -11,6 +11,7 @@ export default function SettingsPage() {
   const [systemLogsCount, setSystemLogsCount] = useState(0);
 
   // Change Password State
+  const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isChangingPassword, setIsChangingPassword] = useState(false);
@@ -46,14 +47,18 @@ export default function SettingsPage() {
       return;
     }
     if (newPassword.length < 6) {
-      showToast('Password minimal 6 karakter ya.', 'error');
+      showToast('Password baru minimal 6 karakter ya.', 'error');
       return;
     }
     setIsChangingPassword(true);
     try {
-      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      const { error } = await supabase.auth.updateUser({ 
+        password: newPassword,
+        current_password: currentPassword
+      });
       if (error) throw error;
       showToast('Password berhasil diubah!', 'success');
+      setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
     } catch (err: any) {
@@ -112,10 +117,21 @@ export default function SettingsPage() {
       <div className="glass-card config-form-box" style={{ marginTop: '2rem' }}>
         <h3>Ganti Kata Sandi</h3>
         <p className="config-desc">
-          Perbarui kata sandi akun administratif Anda yang sedang aktif.
+          Perbarui kata sandi akun administratif Anda yang sedang aktif. Anda harus memasukkan kata sandi lama Anda.
         </p>
 
-        <form onSubmit={handleChangePassword} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', alignItems: 'end' }}>
+        <form onSubmit={handleChangePassword} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.5rem', alignItems: 'end' }}>
+          <div className="form-group">
+            <label htmlFor="current-password">Kata Sandi Lama</label>
+            <input
+              type="password"
+              id="current-password"
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+              placeholder="Masukkan password lama"
+              required
+            />
+          </div>
           <div className="form-group">
             <label htmlFor="new-password">Kata Sandi Baru</label>
             <input
@@ -128,7 +144,7 @@ export default function SettingsPage() {
             />
           </div>
           <div className="form-group">
-            <label htmlFor="confirm-password">Konfirmasi Kata Sandi</label>
+            <label htmlFor="confirm-password">Konfirmasi Kata Sandi Baru</label>
             <input
               type="password"
               id="confirm-password"
@@ -138,7 +154,7 @@ export default function SettingsPage() {
               required
             />
           </div>
-          <div className="config-actions" style={{ gridColumn: 'span 2', marginTop: '1rem', display: 'flex', justifyContent: 'flex-end' }}>
+          <div className="config-actions" style={{ gridColumn: '1 / -1', marginTop: '1rem', display: 'flex', justifyContent: 'flex-end' }}>
             <button type="submit" className="btn btn-primary" disabled={isChangingPassword}>
               {isChangingPassword ? 'Memproses...' : 'Ubah Kata Sandi'} <KeyRound size={16} />
             </button>
