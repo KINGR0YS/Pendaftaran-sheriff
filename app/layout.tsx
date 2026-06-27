@@ -5,6 +5,7 @@ import { AuthProvider } from "@/lib/auth-context";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { ToastProvider } from "@/components/Toast";
+import AestheticEnhancements from "@/components/AestheticEnhancements";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-body" });
 const outfit = Outfit({ subsets: ["latin"], variable: "--font-header" });
@@ -23,6 +24,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <Navbar />
             <main style={{ paddingTop: '70px', flex: 1 }}>{children}</main>
             <Footer />
+            <AestheticEnhancements />
             <div id="toast-root" />
           </ToastProvider>
         </AuthProvider>
