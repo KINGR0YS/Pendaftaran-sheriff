@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+import { useToast } from '@/components/Toast';
 import { ShieldAlert, LayoutDashboard, LogOut, Menu } from 'lucide-react';
 import Image from 'next/image';
 
@@ -12,6 +13,7 @@ export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [recruitmentStatus, setRecruitmentStatus] = useState('open');
   const [activeBatch, setActiveBatch] = useState('1');
+  const { showToast } = useToast();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => setUser(session?.user ?? null));
@@ -24,6 +26,14 @@ export default function Navbar() {
   const handleLogout = async () => {
     await supabase.auth.signOut();
     window.location.href = '/';
+  };
+
+  const handleApplyNavClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    showToast('Silakan baca persyaratan di halaman utama sampai paling bawah untuk mendaftar!', 'warning');
+    if (pathname !== '/') {
+      window.location.href = '/';
+    }
   };
 
   const isClosed = recruitmentStatus === 'closed';
@@ -45,7 +55,7 @@ export default function Navbar() {
           <Link href="/" className={`nav-link ${pathname === '/' ? 'active' : ''}`} onClick={() => setMobileOpen(false)}>
             Halaman Utama
           </Link>
-          <Link href="/#cta" className={`nav-link ${pathname === '/apply' ? 'active' : ''}`} onClick={() => setMobileOpen(false)}>
+          <Link href="/" className={`nav-link ${pathname === '/apply' ? 'active' : ''}`} onClick={handleApplyNavClick}>
             Pendaftaran
           </Link>
           {!user ? (
