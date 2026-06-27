@@ -16,16 +16,17 @@ const sidebarItems = [
 
 export default function Sidebar() {
   const pathname = usePathname();
-  const [displayName, setDisplayName] = useState('DISMAG ON FIRE');
+  const [displayName, setDisplayName] = useState('Admin');
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) return;
       const user = session.user;
-      const name = user.user_metadata?.display_name
+      const name = user.user_metadata?.username
+        || user.user_metadata?.display_name
         || user.user_metadata?.full_name
         || user.email?.split('@')[0]
-        || 'DISMAG ON FIRE';
+        || 'Admin';
       setDisplayName(name);
     });
   }, []);
