@@ -1,8 +1,12 @@
 'use client';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 export default function Modal({ open, onClose, title, children, footer }: any) {
+  const [mounted, setMounted] = useState(false);
+
   useEffect(() => {
+    setMounted(true);
     if (open) {
       document.body.style.overflow = 'hidden';
     } else {
@@ -12,8 +16,11 @@ export default function Modal({ open, onClose, title, children, footer }: any) {
   }, [open]);
 
   if (!open) return null;
+  if (!mounted) return null;
 
-  return (
+  const modalRoot = document.getElementById('modal-root') || document.body;
+
+  return createPortal(
     <div className="modal-overlay" onClick={onClose}>
       <div 
         className="modal-content" 
@@ -21,7 +28,7 @@ export default function Modal({ open, onClose, title, children, footer }: any) {
         style={{ 
           display: 'flex', 
           flexDirection: 'column', 
-          maxHeight: '90vh',
+          maxHeight: '85vh',
           overflow: 'hidden'
         }}
       >
@@ -51,6 +58,7 @@ export default function Modal({ open, onClose, title, children, footer }: any) {
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    modalRoot
   );
 }

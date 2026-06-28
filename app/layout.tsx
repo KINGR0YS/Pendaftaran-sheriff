@@ -26,6 +26,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <Footer />
             <AestheticEnhancements />
             <div id="toast-root" />
+            <div id="modal-root" />
           </ToastProvider>
         </AuthProvider>
       </body>
