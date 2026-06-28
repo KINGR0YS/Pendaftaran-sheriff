@@ -21,7 +21,8 @@ export default function Modal({ open, onClose, title, children, footer }: any) {
         style={{ 
           display: 'flex', 
           flexDirection: 'column', 
-          maxHeight: '90vh' // Set explicit max height of modal card relative to viewport
+          maxHeight: '90vh',
+          overflow: 'hidden'
         }}
       >
         <div className="modal-header" style={{ flexShrink: 0 }}>
