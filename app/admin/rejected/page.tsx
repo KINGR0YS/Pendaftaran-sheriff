@@ -123,7 +123,7 @@ export default function RejectedPage() {
         footer={<button className="btn btn-secondary" onClick={() => setIsModalOpen(false)}>Tutup</button>}
       >
         {selectedApp && (
-          <div style={{ maxHeight: '60vh', overflowY: 'auto' }}>
+          <div>
             <div className="modal-detail-section">
               <h4>Informasi OOC</h4>
               <div className="detail-row-grid">

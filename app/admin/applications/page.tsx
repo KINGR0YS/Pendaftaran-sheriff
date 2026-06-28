@@ -230,7 +230,7 @@ export default function ApplicationsPage() {
         }
       >
         {selectedApp && (
-          <div style={{ maxHeight: '60vh', overflowY: 'auto' }}>
+          <div>
             {/* OOC INFO */}
             <div className="modal-detail-section">
               <h4>Informasi Out Of Character (OOC)</h4>

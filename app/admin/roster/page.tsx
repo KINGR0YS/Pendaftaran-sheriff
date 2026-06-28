@@ -257,7 +257,7 @@ export default function RosterPage() {
         footer={<button className="btn btn-secondary" onClick={() => setIsDetailModalOpen(false)}>Tutup</button>}
       >
         {selectedMember && (
-          <div style={{ maxHeight: '60vh', overflowY: 'auto' }}>
+          <div>
             <div className="modal-detail-section">
               <h4>Informasi Out Of Character (OOC)</h4>
               <div className="detail-row-grid">

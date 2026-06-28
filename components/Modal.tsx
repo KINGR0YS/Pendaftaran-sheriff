@@ -15,13 +15,40 @@ export default function Modal({ open, onClose, title, children, footer }: any) {
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
+      <div 
+        className="modal-content" 
+        onClick={(e) => e.stopPropagation()} 
+        style={{ 
+          display: 'flex', 
+          flexDirection: 'column', 
+          maxHeight: '90vh' // Set explicit max height of modal card relative to viewport
+        }}
+      >
+        <div className="modal-header" style={{ flexShrink: 0 }}>
           <h3>{title}</h3>
           <button className="modal-close" onClick={onClose}>&times;</button>
         </div>
-        <div>{children}</div>
-        {footer && <div style={{ marginTop: '1rem', display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>{footer}</div>}
+        
+        <div className="modal-body" style={{ flex: 1, overflowY: 'auto', paddingRight: '0.25rem' }}>
+          {children}
+        </div>
+        
+        {footer && (
+          <div 
+            className="modal-footer" 
+            style={{ 
+              marginTop: '1rem', 
+              display: 'flex', 
+              justifyContent: 'flex-end', 
+              gap: '0.75rem', 
+              flexShrink: 0,
+              borderTop: '1px solid var(--color-border-custom)',
+              paddingTop: '1rem'
+            }}
+          >
+            {footer}
+          </div>
+        )}
       </div>
     </div>
   );
