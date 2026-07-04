@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Fragment } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/components/Toast';
 import Modal from '@/components/Modal';
@@ -63,6 +63,15 @@ export default function RosterPage() {
     member.ic_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     member.steam_hex?.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const sortedAndFiltered = [...filtered].sort((a, b) => {
+    const batchA = parseInt(a.batch) || 0;
+    const batchB = parseInt(b.batch) || 0;
+    if (batchB !== batchA) {
+      return batchB - batchA; // Newest batch first (descending)
+    }
+    return (a.ic_name || '').localeCompare(b.ic_name || '');
+  });
 
   const handleAddMember = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -183,66 +192,83 @@ export default function RosterPage() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map(member => (
-                <tr key={member.id}>
-                  <td><strong>{member.ic_name}</strong></td>
-                  <td><code>{member.steam_hex || '-'}</code></td>
-                  <td>{member.ic_gender || '-'}</td>
-                  <td>{member.ic_dob || '-'}</td>
-                  <td>Angkatan {member.batch || '1'}</td>
-                  <td>
-                    <span className="processed-by-badge" title={member.processed_by || 'Admin'}>
-                      {member.processed_by || 'Admin'}
-                    </span>
-                  </td>
-                  <td>
-                    <select
-                      value={member.badge_status || ''}
-                      onChange={(e) => updateStatus(member.id, 'badge_status', e.target.value)}
-                      style={{
-                        background: 'rgba(5, 7, 13, 0.6)',
-                        border: '1px solid var(--color-border-custom)',
-                        padding: '0.4rem 0.6rem',
-                        borderRadius: '6px',
-                        color: 'var(--color-text-primary)',
-                        fontSize: '0.75rem',
-                        outline: 'none',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      <option value="">-- Pilih Status --</option>
-                      <option value="lencana aktif">Lencana Aktif</option>
-                      <option value="lencana tidak aktif">Lencana Tidak Aktif</option>
-                    </select>
-                  </td>
-                  <td>
-                    <select
-                      value={member.training_status || ''}
-                      onChange={(e) => updateStatus(member.id, 'training_status', e.target.value)}
-                      style={{
-                        background: 'rgba(5, 7, 13, 0.6)',
-                        border: '1px solid var(--color-border-custom)',
-                        padding: '0.4rem 0.6rem',
-                        borderRadius: '6px',
-                        color: 'var(--color-text-primary)',
-                        fontSize: '0.75rem',
-                        outline: 'none',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      <option value="">-- Pilih Status --</option>
-                      <option value="sedang dalam pelatihan">Sedang Pelatihan</option>
-                      <option value="lulus">Lulus</option>
-                      <option value="tidak lulus">Tidak Lulus</option>
-                    </select>
-                  </td>
-                  <td>
-                    <button className="btn btn-primary btn-sm" onClick={() => { setSelectedMember(member); setIsDetailModalOpen(true); }}>
-                      <Eye size={14} /> Lihat Detail
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {(() => {
+                let lastBatch: string | null = null;
+                return sortedAndFiltered.map((member) => {
+                  const showDivider = lastBatch !== member.batch;
+                  lastBatch = member.batch;
+                  
+                  return (
+                    <Fragment key={member.id}>
+                      {showDivider && (
+                        <tr style={{ background: 'rgba(212, 175, 55, 0.04)', borderLeft: '3px solid var(--color-gold)' }}>
+                          <td colSpan={9} style={{ padding: '0.6rem 1rem', color: 'var(--color-gold)', fontWeight: 800, fontSize: '0.75rem', letterSpacing: '2px', textTransform: 'uppercase' }}>
+                            ⚡ ANGKATAN {member.batch || '1'}
+                          </td>
+                        </tr>
+                      )}
+                      <tr>
+                        <td><strong>{member.ic_name}</strong></td>
+                        <td><code>{member.steam_hex || '-'}</code></td>
+                        <td>{member.ic_gender || '-'}</td>
+                        <td>{member.ic_dob || '-'}</td>
+                        <td>Angkatan {member.batch || '1'}</td>
+                        <td>
+                          <span className="processed-by-badge" title={member.processed_by || 'Admin'}>
+                            {member.processed_by || 'Admin'}
+                          </span>
+                        </td>
+                        <td>
+                          <select
+                            value={member.badge_status || ''}
+                            onChange={(e) => updateStatus(member.id, 'badge_status', e.target.value)}
+                            style={{
+                              background: 'rgba(5, 7, 13, 0.6)',
+                              border: '1px solid var(--color-border-custom)',
+                              padding: '0.4rem 0.6rem',
+                              borderRadius: '6px',
+                              color: 'var(--color-text-primary)',
+                              fontSize: '0.75rem',
+                              outline: 'none',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            <option value="">-- Pilih Status --</option>
+                            <option value="lencana aktif">Lencana Aktif</option>
+                            <option value="lencana tidak aktif">Lencana Tidak Aktif</option>
+                          </select>
+                        </td>
+                        <td>
+                          <select
+                            value={member.training_status || ''}
+                            onChange={(e) => updateStatus(member.id, 'training_status', e.target.value)}
+                            style={{
+                              background: 'rgba(5, 7, 13, 0.6)',
+                              border: '1px solid var(--color-border-custom)',
+                              padding: '0.4rem 0.6rem',
+                              borderRadius: '6px',
+                              color: 'var(--color-text-primary)',
+                              fontSize: '0.75rem',
+                              outline: 'none',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            <option value="">-- Pilih Status --</option>
+                            <option value="sedang dalam pelatihan">Sedang Pelatihan</option>
+                            <option value="lulus">Lulus</option>
+                            <option value="tidak lulus">Tidak Lulus</option>
+                          </select>
+                        </td>
+                        <td>
+                          <button className="btn btn-primary btn-sm" onClick={() => { setSelectedMember(member); setIsDetailModalOpen(true); }}>
+                            <Eye size={14} /> Lihat Detail
+                          </button>
+                        </td>
+                      </tr>
+                    </Fragment>
+                  );
+                });
+              })()}
             </tbody>
           </table>
         </div>
