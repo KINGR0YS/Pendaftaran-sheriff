@@ -2,13 +2,12 @@
 import { useState, useEffect } from 'react';
 import { useToast } from '@/components/Toast';
 import { supabase } from '@/lib/supabase';
-import { Save, Trash2, KeyRound } from 'lucide-react';
+import { Save, KeyRound } from 'lucide-react';
 
 export default function SettingsPage() {
   const { showToast } = useToast();
   const [recruitmentStatus, setRecruitmentStatus] = useState('open');
   const [activeBatch, setActiveBatch] = useState('1');
-  const [systemLogsCount, setSystemLogsCount] = useState(0);
 
   // Change Password State
   const [currentPassword, setCurrentPassword] = useState('');
@@ -19,25 +18,12 @@ export default function SettingsPage() {
   useEffect(() => {
     setRecruitmentStatus(localStorage.getItem('recruitment_status') || 'open');
     setActiveBatch(localStorage.getItem('active_batch') || '1');
-    updateLogsCount();
   }, []);
-
-  const updateLogsCount = () => {
-    const logs = JSON.parse(localStorage.getItem('activity_logs') || '[]');
-    setSystemLogsCount(logs.length);
-  };
 
   const handleSaveRecruitmentSettings = () => {
     localStorage.setItem('active_batch', activeBatch);
     localStorage.setItem('recruitment_status', recruitmentStatus);
     showToast('Pengaturan rekrutmen & angkatan berhasil disimpan.', 'success');
-  };
-
-  const handleClearLogs = () => {
-    if (!confirm('Apakah Anda yakin ingin menghapus semua log aktivitas admin? Tindakan ini tidak dapat dibatalkan.')) return;
-    localStorage.removeItem('activity_logs');
-    setSystemLogsCount(0);
-    showToast('Log aktivitas berhasil dihapus.', 'info');
   };
 
   const handleChangePassword = async (e: React.FormEvent) => {
@@ -164,37 +150,11 @@ export default function SettingsPage() {
 
       {/* System Settings & Version Info */}
       <div className="glass-card config-form-box" style={{ marginTop: '2rem' }}>
-        <h3>Utilitas & Informasi Sistem</h3>
-        <p className="config-desc">
-          Kelola cache sistem, hapus log lama, dan lihat informasi build aplikasi saat ini.
-        </p>
-
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1rem' }}>
-          <div className="form-group">
-            <label>Log Aktivitas Admin</label>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '0.25rem' }}>
-              <span style={{ fontSize: '0.9rem', color: 'var(--color-text-secondary)' }}>
-                Tersimpan: <strong>{systemLogsCount}</strong> entri
-              </span>
-              <button 
-                className="btn btn-secondary btn-sm" 
-                onClick={handleClearLogs}
-                disabled={systemLogsCount === 0}
-                style={{ color: 'var(--color-error)', borderColor: 'rgba(239, 68, 68, 0.2)' }}
-              >
-                <Trash2 size={14} /> Hapus Log
-              </button>
-            </div>
-          </div>
-
-          <div className="form-group">
-            <label>Informasi Build</label>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', marginTop: '0.25rem', fontSize: '0.8rem', color: 'var(--color-text-secondary)' }}>
-              <div>Versi Aplikasi: <strong>v2.0.2</strong></div>
-              <div>Database: <strong>cloud database</strong></div>
-              <div>Direct by : <strong>Cimolbojot</strong></div>
-            </div>
-          </div>
+        <h3>Informasi Sistem</h3>
+        <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.9rem', color: 'var(--color-text-secondary)' }}>
+          <div>Versi Aplikasi: <strong style={{ color: 'var(--color-text-primary)' }}>v2.0.2</strong></div>
+          <div>Database: <strong style={{ color: 'var(--color-text-primary)' }}>cloud database</strong></div>
+          <div>Direct by : <strong style={{ color: 'var(--color-text-primary)' }}>Cimolbojot</strong></div>
         </div>
       </div>
     </div>
