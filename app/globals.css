@@ -1291,53 +1291,7 @@ body {
   }
 }
 
-/* ==========================================
-   CUSTOM CURSOR (PREMIUM SENSATION)
-   ========================================== */
-@media (min-width: 769px) {
-  body, a, button, select, input, textarea, .sidebar-menu-item, option {
-    cursor: none !important;
-  }
-  .custom-cursor {
-    width: 18px;
-    height: 18px;
-    border: 2px solid var(--color-gold);
-    border-radius: 50%;
-    position: fixed;
-    transform: translate(-50%, -50%);
-    pointer-events: none;
-    z-index: 999999;
-    box-shadow: 0 0 10px rgba(212, 175, 55, 0.4);
-    transition: width 0.15s ease-out, height 0.15s ease-out, border-color 0.15s ease-out, background-color 0.15s ease-out, box-shadow 0.15s ease-out;
-  }
-  .custom-cursor::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 4px;
-    height: 4px;
-    background-color: var(--color-gold);
-    border-radius: 50%;
-    transform: translate(-50%, -50%);
-    transition: background-color 0.15s ease-out;
-  }
-  .custom-cursor.clicked {
-    width: 14px;
-    height: 14px;
-    background-color: rgba(212, 175, 55, 0.25);
-    box-shadow: 0 0 8px rgba(212, 175, 55, 0.6);
-  }
-  .custom-cursor.hovered {
-    width: 30px;
-    height: 30px;
-    border-color: var(--color-success);
-    box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
-  }
-  .custom-cursor.hovered::after {
-    background-color: var(--color-success);
-  }
-}
+
 
 
 
