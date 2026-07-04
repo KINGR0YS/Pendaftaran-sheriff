@@ -16,15 +16,13 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Pendaftaran Sheriff Kerajaan Roxwood",
     description: "Pendaftaran Online Sheriff Kerajaan Roxwood",
-    url: "https://yourdomain.com",
-    images: [{ url: "/og-image.png", width: 1200, height: 630 }],
+    url: "https://pendaftaran-sheriff.vercel.app",
     siteName: "Sheriff Roxwood",
   },
   twitter: {
-    card: "summary_large_image",
+    card: "summary",
     title: "Pendaftaran Sheriff Kerajaan Roxwood",
     description: "Pendaftaran Online Sheriff Kerajaan Roxwood",
-    images: ["/og-image.png"],
   },
   icons: {
     icon: "/logo-dismag.png",
