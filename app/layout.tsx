@@ -13,6 +13,9 @@ const outfit = Outfit({ subsets: ["latin"], variable: "--font-header" });
 export const metadata: Metadata = {
   title: "Sheriff Kerajaan Roxwood - FiveM Recruitment & Roster",
   description: "Sistem pendaftaran dan roster Sheriff Kerajaan Roxwood",
+  icons: {
+    icon: "/logo-dismag.png",
+  }
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
