@@ -5,34 +5,49 @@ import { AuthProvider } from "@/lib/auth-context";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { ToastProvider } from "@/components/Toast";
+import { ThemeProvider } from 'next-themes';
 import AestheticEnhancements from "@/components/AestheticEnhancements";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-body" });
 const outfit = Outfit({ subsets: ["latin"], variable: "--font-header" });
 
 export const metadata: Metadata = {
-  title: "Sheriff Kerajaan Roxwood - FiveM Recruitment",
-  description: "Sistem pendaftaran Sheriff Kerajaan Roxwood",
+  title: "Pendaftaran Sheriff Kerajaan Roxwood",
+  openGraph: {
+    title: "Pendaftaran Sheriff Kerajaan Roxwood",
+    description: "Pendaftaran Online Sheriff Kerajaan Roxwood",
+    url: "https://yourdomain.com",
+    images: [{ url: "/og-image.png", width: 1200, height: 630 }],
+    siteName: "Sheriff Roxwood",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Pendaftaran Sheriff Kerajaan Roxwood",
+    description: "Pendaftaran Online Sheriff Kerajaan Roxwood",
+    images: ["/og-image.png"],
+  },
   icons: {
     icon: "/logo-dismag.png",
     apple: "/logo-dismag.png",
-  }
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} ${outfit.variable}`} style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-        <AuthProvider>
-          <ToastProvider>
-            <Navbar />
-            <main style={{ paddingTop: '70px', flex: 1 }}>{children}</main>
-            <Footer />
-            <AestheticEnhancements />
-            <div id="toast-root" />
-            <div id="modal-root" />
-          </ToastProvider>
-        </AuthProvider>
+              <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+            <AuthProvider>
+              <ToastProvider>
+                <Navbar />
+                <main style={{ paddingTop: '70px', flex: 1 }}>{children}</main>
+                <Footer />
+                <AestheticEnhancements />
+                <div id="toast-root" />
+                <div id="modal-root" />
+              </ToastProvider>
+            </AuthProvider>
+          </ThemeProvider>
       </body>
     </html>
   );

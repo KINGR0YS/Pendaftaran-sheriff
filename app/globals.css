@@ -50,11 +50,27 @@ body {
   padding-bottom: 2rem;
 }
 
-/* Custom Scrollbar */
-::-webkit-scrollbar { width: 8px; height: 8px; }
-::-webkit-scrollbar-track { background: var(--color-bg-deep); }
-::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.08); border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: var(--color-gold); }
+/* Dark mode variables */
+[data-theme='dark'] {
+  --color-bg-deep: #0a0a0a;
+  --color-bg-card: rgba(30, 30, 30, 0.45);
+  --color-bg-card-hover: rgba(45, 45, 45, 0.65);
+  --color-border-custom: rgba(255, 255, 255, 0.1);
+  --color-border-hover: rgba(212, 175, 55, 0.5);
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #cbd5e1;
+  --color-text-muted: #94a3b8;
+}
+
+/* Glass card entrance animation */
+@keyframes fadeInUp {
+  0% { opacity: 0; transform: translateY(10px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+.glass-card {
+  animation: fadeInUp 0.4s ease forwards;
+}
+
 
 /* ==========================================
    GLASS CARD
