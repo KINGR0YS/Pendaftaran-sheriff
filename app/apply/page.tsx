@@ -169,7 +169,7 @@ export default function ApplyPage() {
                 </div>
                 <div className="form-group">
                   <label htmlFor="ooc_age">Umur Real Life <span className="required">*</span></label>
-                  <input type="number" id="ooc_age" value={formData.ooc_age} onChange={handleChange} min="17" max="60" placeholder="Contoh: 18" required />
+                  <input type="number" id="ooc_age" value={formData.ooc_age} onChange={handleChange} min="1" max="60" placeholder="Contoh: 18" required />
                 </div>
                 <div className="form-group">
                   <label htmlFor="ooc_gender">Jenis Kelamin (OOC) <span className="required">*</span></label>
@@ -218,7 +218,7 @@ export default function ApplyPage() {
                 </div>
                 <div className="form-group">
                   <label htmlFor="ic_age">Umur Karakter <span className="required">*</span></label>
-                  <input type="number" id="ic_age" value={formData.ic_age} onChange={handleChange} min="17" max="100" placeholder="Contoh: 25" required />
+                  <input type="number" id="ic_age" value={formData.ic_age} onChange={handleChange} min="1" max="100" placeholder="Contoh: 25" required />
                 </div>
                 <div className="form-group">
                   <label htmlFor="ic_gender">Jenis Kelamin (IC) <span className="required">*</span></label>
