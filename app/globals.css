@@ -31,9 +31,11 @@
 
 html {
   scroll-behavior: smooth;
+  cursor: auto !important;
 }
 
 body {
+  cursor: auto !important;
   font-family: var(--font-body);
   background-color: var(--color-bg-deep);
   background-image:
