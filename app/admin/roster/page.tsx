@@ -93,8 +93,8 @@ export default function RosterPage() {
       batch: activeBatch,
       status: 'approved',
       processed_by: adminEmail,
-      badge_status: 'lencana aktif',
-      training_status: 'sedang dalam pelatihan',
+      badge_status: '',
+      training_status: '',
       created_at: new Date().toISOString()
     };
 
@@ -197,7 +197,7 @@ export default function RosterPage() {
                   </td>
                   <td>
                     <select
-                      value={member.badge_status || 'lencana aktif'}
+                      value={member.badge_status || ''}
                       onChange={(e) => updateStatus(member.id, 'badge_status', e.target.value)}
                       style={{
                         background: 'rgba(5, 7, 13, 0.6)',
@@ -210,13 +210,14 @@ export default function RosterPage() {
                         cursor: 'pointer'
                       }}
                     >
+                      <option value="">-- Pilih Status --</option>
                       <option value="lencana aktif">Lencana Aktif</option>
                       <option value="lencana tidak aktif">Lencana Tidak Aktif</option>
                     </select>
                   </td>
                   <td>
                     <select
-                      value={member.training_status || 'sedang dalam pelatihan'}
+                      value={member.training_status || ''}
                       onChange={(e) => updateStatus(member.id, 'training_status', e.target.value)}
                       style={{
                         background: 'rgba(5, 7, 13, 0.6)',
@@ -229,6 +230,7 @@ export default function RosterPage() {
                         cursor: 'pointer'
                       }}
                     >
+                      <option value="">-- Pilih Status --</option>
                       <option value="sedang dalam pelatihan">Sedang Pelatihan</option>
                       <option value="lulus">Lulus</option>
                       <option value="tidak lulus">Tidak Lulus</option>

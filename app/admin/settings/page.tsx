@@ -147,16 +147,6 @@ export default function SettingsPage() {
           </div>
         </form>
       </div>
-
-      {/* System Settings & Version Info */}
-      <div className="glass-card config-form-box" style={{ marginTop: '2rem' }}>
-        <h3>Informasi Sistem</h3>
-        <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.9rem', color: 'var(--color-text-secondary)' }}>
-          <div>Versi Aplikasi: <strong style={{ color: 'var(--color-text-primary)' }}>v2.0.2</strong></div>
-          <div>Database: <strong style={{ color: 'var(--color-text-primary)' }}>cloud database</strong></div>
-          <div>Direct by : <strong style={{ color: 'var(--color-text-primary)' }}>Cimolbojot</strong></div>
-        </div>
-      </div>
     </div>
   );
 }
