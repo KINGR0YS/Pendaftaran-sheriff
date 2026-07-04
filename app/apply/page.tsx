@@ -75,14 +75,14 @@ export default function ApplyPage() {
 
     if (currentStep === 1) {
       const age = parseInt(formData.ooc_age);
-      if (isNaN(age) || age < 17 || age > 60) {
-        showToast('Umur OOC harus antara 17 hingga 60 tahun!', 'error');
+      if (isNaN(age) || age < 1 || age > 60) {
+        showToast('Umur OOC harus valid (1 - 60 tahun)!', 'error');
         return false;
       }
     } else if (currentStep === 2) {
       const age = parseInt(formData.ic_age);
-      if (isNaN(age) || age < 17 || age > 100) {
-        showToast('Umur Karakter IC harus antara 17 hingga 100 tahun!', 'error');
+      if (isNaN(age) || age < 1 || age > 100) {
+        showToast('Umur Karakter IC harus valid (1 - 100 tahun)!', 'error');
         return false;
       }
     }

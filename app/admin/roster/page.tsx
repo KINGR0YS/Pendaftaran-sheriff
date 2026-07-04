@@ -208,7 +208,14 @@ export default function RosterPage() {
                         </tr>
                       )}
                       <tr>
-                        <td><strong>{member.ic_name}</strong></td>
+                        <td>
+                          <strong>{member.ic_name}</strong>
+                          {((parseInt(member.ooc_age) < 17) || (parseInt(member.ic_age) < 17)) && (
+                            <span style={{ color: 'var(--color-error)', marginLeft: '0.4rem', fontSize: '0.7rem', fontWeight: 'bold' }} title="Pendaftar atau karakter di bawah 17 tahun">
+                              ⚠️ <span style={{ textDecoration: 'underline' }}>Di Bawah Umur</span>
+                            </span>
+                          )}
+                        </td>
                         <td><code>{member.steam_hex || '-'}</code></td>
                         <td>{member.ic_gender || '-'}</td>
                         <td>{member.ic_dob || '-'}</td>
@@ -348,7 +355,17 @@ export default function RosterPage() {
               <h4>Informasi Out Of Character (OOC)</h4>
               <div className="detail-row-grid">
                 <div className="detail-label-value"><span>Nama Asli</span><span>{selectedMember.ooc_name}</span></div>
-                <div className="detail-label-value"><span>Umur</span><span>{selectedMember.ooc_age} Tahun</span></div>
+                <div className="detail-label-value">
+                  <span>Umur</span>
+                  <span>
+                    {selectedMember.ooc_age} Tahun
+                    {parseInt(selectedMember.ooc_age) < 17 && (
+                      <span style={{ color: 'var(--color-error)', marginLeft: '0.5rem', fontWeight: 'bold' }}>
+                        ⚠️ Di Bawah Umur
+                      </span>
+                    )}
+                  </span>
+                </div>
                 <div className="detail-label-value"><span>Discord Username</span><span>{selectedMember.discord_id}</span></div>
                 <div className="detail-label-value"><span>Steam Hex</span><span><code>{selectedMember.steam_hex}</code></span></div>
                 <div className="detail-label-value"><span>Lama RP</span><span>{selectedMember.playtime}</span></div>
@@ -359,7 +376,17 @@ export default function RosterPage() {
               <h4>Informasi In Character (IC)</h4>
               <div className="detail-row-grid">
                 <div className="detail-label-value"><span>Nama Karakter</span><span><strong>{selectedMember.ic_name}</strong></span></div>
-                <div className="detail-label-value"><span>Umur Karakter</span><span>{selectedMember.ic_age} Tahun</span></div>
+                <div className="detail-label-value">
+                  <span>Umur Karakter</span>
+                  <span>
+                    {selectedMember.ic_age} Tahun
+                    {parseInt(selectedMember.ic_age) < 17 && (
+                      <span style={{ color: 'var(--color-error)', marginLeft: '0.5rem', fontWeight: 'bold' }}>
+                        ⚠️ Di Bawah Umur
+                      </span>
+                    )}
+                  </span>
+                </div>
                 <div className="detail-label-value"><span>Nomor HP</span><span>{selectedMember.phone_number}</span></div>
               </div>
             </div>

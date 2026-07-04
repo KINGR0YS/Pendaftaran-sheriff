@@ -185,7 +185,10 @@ export default function ApplicationsPage() {
                     {app.status === 'approved' ? 'Diterima' : app.status === 'rejected' ? 'Ditolak' : 'Pending'}
                   </span>
                 </div>
-                <div className="app-ooc-sub">Pendaftar OOC: <strong>{app.ooc_name}</strong> (Umur: {app.ooc_age})</div>
+                <div className="app-ooc-sub">
+                  Pendaftar OOC: <strong>{app.ooc_name}</strong> (Umur: {app.ooc_age} 
+                  {parseInt(app.ooc_age) < 17 && <span style={{ color: 'var(--color-error)', fontWeight: 'bold' }}> ⚠️ DI BAWAH UMUR</span>})
+                </div>
                 <div className="app-details-quick">
                   <span>Discord: {app.discord_id}</span>
                   <span>Tanggal: {new Date(app.created_at).toLocaleDateString('id-ID')}</span>
@@ -245,7 +248,14 @@ export default function ApplicationsPage() {
                 </div>
                 <div className="detail-label-value">
                   <span>Umur</span>
-                  <span>{selectedApp.ooc_age} Tahun</span>
+                  <span>
+                    {selectedApp.ooc_age} Tahun
+                    {parseInt(selectedApp.ooc_age) < 17 && (
+                      <span style={{ color: 'var(--color-error)', marginLeft: '0.5rem', fontWeight: 'bold' }}>
+                        ⚠️ Di Bawah Umur
+                      </span>
+                    )}
+                  </span>
                 </div>
                 <div className="detail-label-value">
                   <span>Jenis Kelamin</span>
@@ -288,7 +298,14 @@ export default function ApplicationsPage() {
                 </div>
                 <div className="detail-label-value">
                   <span>Umur Karakter</span>
-                  <span>{selectedApp.ic_age} Tahun</span>
+                  <span>
+                    {selectedApp.ic_age} Tahun
+                    {parseInt(selectedApp.ic_age) < 17 && (
+                      <span style={{ color: 'var(--color-error)', marginLeft: '0.5rem', fontWeight: 'bold' }}>
+                        ⚠️ Di Bawah Umur
+                      </span>
+                    )}
+                  </span>
                 </div>
                 <div className="detail-label-value">
                   <span>Jenis Kelamin Karakter</span>
