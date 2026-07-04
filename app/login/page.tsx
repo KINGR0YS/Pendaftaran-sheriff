@@ -15,19 +15,27 @@ export default function LoginPage() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) router.push('/admin');
+      console.log('LoginPage: Current session:', session);
+      if (session) {
+        console.log('LoginPage: Session active, redirecting to /admin');
+        router.push('/admin');
+      }
     });
   }, [router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    console.log('handleLogin: Attempting login with email:', email);
     try {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      console.log('handleLogin: Supabase response data:', data, 'error:', error);
       if (error) throw error;
       showToast('Berhasil masuk! Selamat bekerja.', 'success');
+      console.log('handleLogin: Success! Redirecting to /admin...');
       router.push('/admin');
     } catch (err: any) {
+      console.error('handleLogin: Catch block error:', err);
       showToast(err.message || 'Gagal login. Cek lagi email dan password kamu.', 'error');
     } finally {
       setLoading(false);
