@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   title: "Sheriff Kerajaan Roxwood - FiveM Recruitment & Roster",
   description: "Sistem pendaftaran dan roster Sheriff Kerajaan Roxwood",
   icons: {
-    icon: "/logo-dismag.png",
+    icon: "/favicon-dismag.png",
   }
 };
 
