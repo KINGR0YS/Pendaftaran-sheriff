@@ -82,6 +82,8 @@ ALTER TABLE applications ADD COLUMN IF NOT EXISTS origin TEXT DEFAULT '-';
 ALTER TABLE applications ADD COLUMN IF NOT EXISTS chain_of_command TEXT DEFAULT '-';
 ALTER TABLE applications ADD COLUMN IF NOT EXISTS scenario_use_of_force TEXT DEFAULT '-';
 ALTER TABLE applications ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE applications ADD COLUMN IF NOT EXISTS badge_status TEXT DEFAULT 'lencana aktif';
+ALTER TABLE applications ADD COLUMN IF NOT EXISTS training_status TEXT DEFAULT 'sedang dalam pelatihan';
 
 -- -------------------------------------------------------
 -- LANGKAH 4: Fungsi Auto-Update updated_at (Opsional)

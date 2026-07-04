@@ -93,6 +93,8 @@ export default function RosterPage() {
       batch: activeBatch,
       status: 'approved',
       processed_by: adminEmail,
+      badge_status: 'lencana aktif',
+      training_status: 'sedang dalam pelatihan',
       created_at: new Date().toISOString()
     };
 
@@ -106,6 +108,21 @@ export default function RosterPage() {
       loadRoster();
     } catch (err: any) {
       showToast(`Gagal memproses data: ${err.message}`, 'error');
+    }
+  };
+
+  const updateStatus = async (id: string, field: string, value: string) => {
+    try {
+      const { error } = await supabase
+        .from('applications')
+        .update({ [field]: value })
+        .eq('id', id);
+      if (error) throw error;
+      showToast('Status anggota berhasil diperbarui.', 'success');
+      setRoster(prev => prev.map(m => m.id === id ? { ...m, [field]: value } : m));
+      logActivity(`Status ${field} diperbarui menjadi: ${value}`);
+    } catch (err: any) {
+      showToast(`Gagal memperbarui status: ${err.message}`, 'error');
     }
   };
 
@@ -160,6 +177,8 @@ export default function RosterPage() {
                 <th>Tanggal Lahir IC</th>
                 <th>Angkatan</th>
                 <th>Diterima Oleh</th>
+                <th>Status Lencana</th>
+                <th>Status Pelatihan</th>
                 <th>Aksi</th>
               </tr>
             </thead>
@@ -175,6 +194,45 @@ export default function RosterPage() {
                     <span className="processed-by-badge" title={member.processed_by || 'Admin'}>
                       {member.processed_by || 'Admin'}
                     </span>
+                  </td>
+                  <td>
+                    <select
+                      value={member.badge_status || 'lencana aktif'}
+                      onChange={(e) => updateStatus(member.id, 'badge_status', e.target.value)}
+                      style={{
+                        background: 'rgba(5, 7, 13, 0.6)',
+                        border: '1px solid var(--color-border-custom)',
+                        padding: '0.4rem 0.6rem',
+                        borderRadius: '6px',
+                        color: 'var(--color-text-primary)',
+                        fontSize: '0.75rem',
+                        outline: 'none',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <option value="lencana aktif">Lencana Aktif</option>
+                      <option value="lencana tidak aktif">Lencana Tidak Aktif</option>
+                    </select>
+                  </td>
+                  <td>
+                    <select
+                      value={member.training_status || 'sedang dalam pelatihan'}
+                      onChange={(e) => updateStatus(member.id, 'training_status', e.target.value)}
+                      style={{
+                        background: 'rgba(5, 7, 13, 0.6)',
+                        border: '1px solid var(--color-border-custom)',
+                        padding: '0.4rem 0.6rem',
+                        borderRadius: '6px',
+                        color: 'var(--color-text-primary)',
+                        fontSize: '0.75rem',
+                        outline: 'none',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <option value="sedang dalam pelatihan">Sedang Pelatihan</option>
+                      <option value="lulus">Lulus</option>
+                      <option value="tidak lulus">Tidak Lulus</option>
+                    </select>
                   </td>
                   <td>
                     <button className="btn btn-primary btn-sm" onClick={() => { setSelectedMember(member); setIsDetailModalOpen(true); }}>
