@@ -163,7 +163,7 @@ export default function RosterPage() {
       {isLoading ? (
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '300px', gap: '1rem' }}>
           <div className="loading-spinner" />
-          <p style={{ color: 'var(--color-text-muted)', fontSize: '0.85rem' }}>Memuat daftar roster...</p>
+          <p style={{ color: 'var(--color-text-muted)', fontSize: '0.85rem' }}>Memuat data...</p>
         </div>
       ) : filtered.length === 0 ? (
         <div className="empty-state">

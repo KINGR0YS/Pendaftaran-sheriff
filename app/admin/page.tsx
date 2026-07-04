@@ -106,7 +106,7 @@ export default function AdminStatsPage() {
 
       <div className="dashboard-sections-split">
         <div className="glass-card section-card">
-          <h3>Aktivitas Roster Terbaru</h3>
+          <h3>Aktivitas Terbaru</h3>
           <div className="activity-log">
             {activityLogs.length === 0 ? (
               <div className="empty-state">

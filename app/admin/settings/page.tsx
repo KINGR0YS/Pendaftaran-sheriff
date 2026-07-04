@@ -58,14 +58,14 @@ export default function SettingsPage() {
     <div>
       <h2 className="dashboard-title">Pengaturan</h2>
       <p className="dashboard-subtitle">
-        Kelola pengaturan rekrutmen dan angkatan Sheriff Kerajaan Roxwood serta utilitas sistem.
+        Kelola pengaturan rekrutmen dan angkatan Sheriff Kerajaan Roxwood.
       </p>
 
       {/* Recruitment Settings */}
       <div className="glass-card config-form-box" style={{ marginTop: '1.5rem' }}>
-        <h3>Pengaturan Status & Angkatan Rekrutmen</h3>
+        <h3>Pengaturan Status & Angkatan</h3>
         <p className="config-desc">
-          Atur status pendaftaran aktif dan nomor angkatan penerimaan saat ini.
+          Atur Status Pembukaan Pendaftaran Sheriff Kerajaan Roxwood.
         </p>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1rem' }}>
@@ -101,14 +101,14 @@ export default function SettingsPage() {
 
       {/* Ganti Password Section */}
       <div className="glass-card config-form-box" style={{ marginTop: '2rem' }}>
-        <h3>Ganti Kata Sandi</h3>
+        <h3>RESET PASSWORD</h3>
         <p className="config-desc">
-          Perbarui kata sandi akun administratif Anda yang sedang aktif. Anda harus memasukkan kata sandi lama Anda.
+          Perbarui kata sandi .
         </p>
 
         <form onSubmit={handleChangePassword} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.5rem', alignItems: 'end' }}>
           <div className="form-group">
-            <label htmlFor="current-password">Kata Sandi Lama</label>
+            <label htmlFor="current-password">Password Lama</label>
             <input
               type="password"
               id="current-password"
@@ -119,7 +119,7 @@ export default function SettingsPage() {
             />
           </div>
           <div className="form-group">
-            <label htmlFor="new-password">Kata Sandi Baru</label>
+            <label htmlFor="new-password">Password Baru</label>
             <input
               type="password"
               id="new-password"
@@ -130,7 +130,7 @@ export default function SettingsPage() {
             />
           </div>
           <div className="form-group">
-            <label htmlFor="confirm-password">Konfirmasi Kata Sandi Baru</label>
+            <label htmlFor="confirm-password">Konfirmasi Password Baru</label>
             <input
               type="password"
               id="confirm-password"

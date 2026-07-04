@@ -11,8 +11,8 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-body" });
 const outfit = Outfit({ subsets: ["latin"], variable: "--font-header" });
 
 export const metadata: Metadata = {
-  title: "Sheriff Kerajaan Roxwood - FiveM Recruitment & Roster",
-  description: "Sistem pendaftaran dan roster Sheriff Kerajaan Roxwood",
+  title: "Sheriff Kerajaan Roxwood - FiveM Recruitment",
+  description: "Sistem pendaftaran Sheriff Kerajaan Roxwood",
   icons: {
     icon: "/logo-dismag.png",
     apple: "/logo-dismag.png",
