@@ -16,6 +16,7 @@ export default function AbsensiPelatihPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [dbError, setDbError] = useState<string | null>(null);
+  const [currentUserRole, setCurrentUserRole] = useState<string>('pelatih');
   
   // Tanggal Mulai Pelatihan (7 Hari)
   const getInitialStartDate = () => {
@@ -56,6 +57,10 @@ export default function AbsensiPelatihPage() {
       if (session?.user) {
         const name = session.user.user_metadata?.username || session.user.email?.split('@')[0] || 'Admin';
         setEvaluatorName(name);
+        
+        const role = session.user.user_metadata?.role || 'dismag';
+        const normalizedRole = role === 'admin' ? 'dismag' : (role === 'trainer' ? 'pelatih' : role);
+        setCurrentUserRole(normalizedRole);
       }
     });
     
@@ -284,6 +289,14 @@ export default function AbsensiPelatihPage() {
       bg = 'rgba(220, 38, 38, 0.35)';
       color = '#f87171';
       border = '1px solid rgba(220, 38, 38, 0.5)';
+    } else if (value === 'TIDAK SAMPAI SELESAI') {
+      bg = 'rgba(245, 158, 11, 0.2)';
+      color = '#f59e0b';
+      border = '1px solid rgba(245, 158, 11, 0.4)';
+    } else if (value === 'TERLAMBAT') {
+      bg = 'rgba(239, 68, 68, 0.2)';
+      color = '#ef4444';
+      border = '1px solid rgba(239, 68, 68, 0.4)';
     }
     
     return {
@@ -311,6 +324,37 @@ export default function AbsensiPelatihPage() {
       }
     });
     return count;
+  };
+
+  const calculateStaffSalary = (memberId: string, role: string) => {
+    const memberAttendance = attendanceMatrix[memberId] || {};
+    let total = 0;
+    const isTrainer = role === 'pelatih';
+    const presentRate = isTrainer ? 100000 : 120000;
+    const lateOrIncompleteRate = isTrainer ? 50000 : 60000;
+
+    datesList.forEach(date => {
+      const dateStr = date.toISOString().split('T')[0];
+      const status = memberAttendance[dateStr];
+      if (status === 'HADIR') {
+        total += presentRate;
+      } else if (status === 'TERLAMBAT' || status === 'TIDAK SAMPAI SELESAI') {
+        total += lateOrIncompleteRate;
+      }
+    });
+    return total;
+  };
+
+  const formatRupiah = (amount: number) => {
+    return 'Rp' + amount.toLocaleString('id-ID');
+  };
+
+  const calculateTotalGroupSalary = (list: any[]) => {
+    let total = 0;
+    list.forEach(m => {
+      total += calculateStaffSalary(m.user_id, m.role);
+    });
+    return total;
   };
 
   const filtered = staffRoster.filter(member =>
@@ -477,7 +521,7 @@ ALTER TABLE staff_attendance DISABLE ROW LEVEL SECURITY;`}
                 </div>
               ) : (
                 <div className="table-responsive" style={{ overflowX: 'auto', border: '1px solid var(--color-border-custom)', borderRadius: '8px', background: 'var(--color-bg-card)' }}>
-                  <table className="roster-table" style={{ borderCollapse: 'collapse', width: '100%', minWidth: '1000px' }}>
+                  <table className="roster-table" style={{ borderCollapse: 'collapse', width: '100%', minWidth: '1100px' }}>
                     <thead>
                       <tr style={{ background: 'rgba(15, 23, 42, 0.8)', borderBottom: '2px solid var(--color-border-custom)' }}>
                         <th style={{ padding: '0.75rem 1rem', textAlign: 'left', minWidth: '220px', position: 'sticky', left: 0, zIndex: 10, background: '#0e1320', borderRight: '2px solid var(--color-border-custom)' }}>
@@ -492,6 +536,11 @@ ALTER TABLE staff_attendance DISABLE ROW LEVEL SECURITY;`}
                         <th style={{ padding: '0.75rem 1rem', textAlign: 'center', minWidth: '80px', background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', fontWeight: 'bold' }}>
                           HADIR
                         </th>
+                        {currentUserRole !== 'pelatih' && (
+                          <th style={{ padding: '0.75rem 1rem', textAlign: 'center', minWidth: '130px', background: 'rgba(21, 128, 61, 0.1)', color: '#10b981', fontWeight: 'bold' }}>
+                            GAJI
+                          </th>
+                        )}
                         <th style={{ padding: '0.75rem 1rem', textAlign: 'center', minWidth: '60px' }}>
                           AKSI
                         </th>
@@ -515,6 +564,8 @@ ALTER TABLE staff_attendance DISABLE ROW LEVEL SECURITY;`}
                                 >
                                   <option value="" style={{ background: '#0e1320', color: 'var(--color-text-secondary)' }}>-</option>
                                   <option value="HADIR" style={{ background: '#0e1320', color: '#10b981' }}>HADIR</option>
+                                  <option value="TIDAK SAMPAI SELESAI" style={{ background: '#0e1320', color: '#f59e0b' }}>TIDAK SELESAI</option>
+                                  <option value="TERLAMBAT" style={{ background: '#0e1320', color: '#ef4444' }}>TERLAMBAT</option>
                                   <option value="IZIN" style={{ background: '#0e1320', color: '#fbbf24' }}>IZIN</option>
                                   <option value="SAKIT" style={{ background: '#0e1320', color: '#60a5fa' }}>SAKIT</option>
                                   <option value="TIDAK HADIR" style={{ background: '#0e1320', color: '#f87171' }}>TIDAK HADIR</option>
@@ -525,6 +576,11 @@ ALTER TABLE staff_attendance DISABLE ROW LEVEL SECURITY;`}
                           <td style={{ padding: '0.75rem 1rem', textAlign: 'center', fontWeight: 'bold', color: '#10b981', background: 'rgba(16, 185, 129, 0.04)' }}>
                             {countPresents(member.user_id)} Hari
                           </td>
+                          {currentUserRole !== 'pelatih' && (
+                            <td style={{ padding: '0.75rem 1rem', textAlign: 'center', fontWeight: 'bold', color: '#10b981', background: 'rgba(16, 185, 129, 0.04)' }}>
+                              {formatRupiah(calculateStaffSalary(member.user_id, member.role))}
+                            </td>
+                          )}
                           <td style={{ padding: '0.75rem 1rem', textAlign: 'center' }}>
                             <button
                               onClick={() => handleRemoveMember(member.user_id, member.username)}
@@ -537,6 +593,19 @@ ALTER TABLE staff_attendance DISABLE ROW LEVEL SECURITY;`}
                         </tr>
                       ))}
                     </tbody>
+                    {currentUserRole !== 'pelatih' && (
+                      <tfoot>
+                        <tr style={{ borderTop: '2px solid var(--color-border-custom)', background: 'rgba(16, 185, 129, 0.05)' }}>
+                          <td style={{ padding: '0.75rem 1rem', fontWeight: 'bold', color: '#10b981', position: 'sticky', left: 0, zIndex: 5, background: '#0d111d', borderRight: '2px solid var(--color-border-custom)' }}>
+                            TOTAL GAJI PELATIH
+                          </td>
+                          <td colSpan={9} style={{ padding: '0.75rem 1rem', textAlign: 'right', fontWeight: 'bold', color: '#10b981' }}>
+                            {formatRupiah(calculateTotalGroupSalary(pelatihList))}
+                          </td>
+                          <td></td>
+                        </tr>
+                      </tfoot>
+                    )}
                   </table>
                 </div>
               )}
@@ -556,7 +625,7 @@ ALTER TABLE staff_attendance DISABLE ROW LEVEL SECURITY;`}
                 </div>
               ) : (
                 <div className="table-responsive" style={{ overflowX: 'auto', border: '1px solid var(--color-border-custom)', borderRadius: '8px', background: 'var(--color-bg-card)' }}>
-                  <table className="roster-table" style={{ borderCollapse: 'collapse', width: '100%', minWidth: '1000px' }}>
+                  <table className="roster-table" style={{ borderCollapse: 'collapse', width: '100%', minWidth: '1100px' }}>
                     <thead>
                       <tr style={{ background: 'rgba(15, 23, 42, 0.8)', borderBottom: '2px solid var(--color-border-custom)' }}>
                         <th style={{ padding: '0.75rem 1rem', textAlign: 'left', minWidth: '220px', position: 'sticky', left: 0, zIndex: 10, background: '#0e1320', borderRight: '2px solid var(--color-border-custom)' }}>
@@ -571,6 +640,11 @@ ALTER TABLE staff_attendance DISABLE ROW LEVEL SECURITY;`}
                         <th style={{ padding: '0.75rem 1rem', textAlign: 'center', minWidth: '80px', background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', fontWeight: 'bold' }}>
                           HADIR
                         </th>
+                        {currentUserRole !== 'pelatih' && (
+                          <th style={{ padding: '0.75rem 1rem', textAlign: 'center', minWidth: '130px', background: 'rgba(21, 128, 61, 0.1)', color: '#10b981', fontWeight: 'bold' }}>
+                            GAJI
+                          </th>
+                        )}
                         <th style={{ padding: '0.75rem 1rem', textAlign: 'center', minWidth: '60px' }}>
                           AKSI
                         </th>
@@ -597,6 +671,8 @@ ALTER TABLE staff_attendance DISABLE ROW LEVEL SECURITY;`}
                                 >
                                   <option value="" style={{ background: '#0e1320', color: 'var(--color-text-secondary)' }}>-</option>
                                   <option value="HADIR" style={{ background: '#0e1320', color: '#10b981' }}>HADIR</option>
+                                  <option value="TIDAK SAMPAI SELESAI" style={{ background: '#0e1320', color: '#f59e0b' }}>TIDAK SELESAI</option>
+                                  <option value="TERLAMBAT" style={{ background: '#0e1320', color: '#ef4444' }}>TERLAMBAT</option>
                                   <option value="IZIN" style={{ background: '#0e1320', color: '#fbbf24' }}>IZIN</option>
                                   <option value="SAKIT" style={{ background: '#0e1320', color: '#60a5fa' }}>SAKIT</option>
                                   <option value="TIDAK HADIR" style={{ background: '#0e1320', color: '#f87171' }}>TIDAK HADIR</option>
@@ -607,6 +683,11 @@ ALTER TABLE staff_attendance DISABLE ROW LEVEL SECURITY;`}
                           <td style={{ padding: '0.75rem 1rem', textAlign: 'center', fontWeight: 'bold', color: '#10b981', background: 'rgba(16, 185, 129, 0.04)' }}>
                             {countPresents(member.user_id)} Hari
                           </td>
+                          {currentUserRole !== 'pelatih' && (
+                            <td style={{ padding: '0.75rem 1rem', textAlign: 'center', fontWeight: 'bold', color: '#10b981', background: 'rgba(16, 185, 129, 0.04)' }}>
+                              {formatRupiah(calculateStaffSalary(member.user_id, member.role))}
+                            </td>
+                          )}
                           <td style={{ padding: '0.75rem 1rem', textAlign: 'center' }}>
                             <button
                               onClick={() => handleRemoveMember(member.user_id, member.username)}
@@ -619,6 +700,19 @@ ALTER TABLE staff_attendance DISABLE ROW LEVEL SECURITY;`}
                         </tr>
                       ))}
                     </tbody>
+                    {currentUserRole !== 'pelatih' && (
+                      <tfoot>
+                        <tr style={{ borderTop: '2px solid var(--color-border-custom)', background: 'rgba(16, 185, 129, 0.05)' }}>
+                          <td style={{ padding: '0.75rem 1rem', fontWeight: 'bold', color: '#10b981', position: 'sticky', left: 0, zIndex: 5, background: '#0d111d', borderRight: '2px solid var(--color-border-custom)' }}>
+                            TOTAL GAJI PENGAWAS
+                          </td>
+                          <td colSpan={9} style={{ padding: '0.75rem 1rem', textAlign: 'right', fontWeight: 'bold', color: '#10b981' }}>
+                            {formatRupiah(calculateTotalGroupSalary(pengawasList))}
+                          </td>
+                          <td></td>
+                        </tr>
+                      </tfoot>
+                    )}
                   </table>
                 </div>
               )}
