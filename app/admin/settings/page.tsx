@@ -16,11 +16,11 @@ export default function SettingsPage() {
   const [isChangingPassword, setIsChangingPassword] = useState(false);
 
   // Role & Pembuatan Akun State
-  const [userRole, setUserRole] = useState<string>('admin');
+  const [userRole, setUserRole] = useState<string>('dismag');
   const [newEmail, setNewEmail] = useState('');
   const [newUsername, setNewUsername] = useState('');
   const [newAccountPassword, setNewAccountPassword] = useState('');
-  const [selectedRole, setSelectedRole] = useState<'admin' | 'trainer' | 'superadmin'>('trainer');
+  const [selectedRole, setSelectedRole] = useState<'dismag' | 'pelatih' | 'superadmin'>('pelatih');
   const [isCreatingAccount, setIsCreatingAccount] = useState(false);
 
   useEffect(() => {
@@ -29,7 +29,7 @@ export default function SettingsPage() {
     
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
-        setUserRole(session.user.user_metadata?.role || 'admin');
+        setUserRole(session.user.user_metadata?.role || 'dismag');
       }
     });
   }, []);
@@ -125,8 +125,8 @@ export default function SettingsPage() {
         Kelola pengaturan rekrutmen dan angkatan Sheriff Kerajaan Roxwood.
       </p>
 
-      {/* Recruitment Settings — Hanya untuk Admin & Superadmin */}
-      {(userRole === 'admin' || userRole === 'superadmin') && (
+      {/* Recruitment Settings — Hanya untuk Dismag & Superadmin */}
+      {(userRole === 'dismag' || userRole === 'superadmin') && (
         <div className="glass-card config-form-box" style={{ marginTop: '1.5rem' }}>
           <h3>Pengaturan Status & Angkatan</h3>
           <p className="config-desc">
@@ -214,8 +214,8 @@ export default function SettingsPage() {
         </form>
       </div>
 
-      {/* Pembuatan Akun Baru (Hanya untuk Admin & Superadmin) */}
-      {(userRole === 'admin' || userRole === 'superadmin') && (
+      {/* Pembuatan Akun Baru (Hanya untuk Dismag & Superadmin) */}
+      {(userRole === 'dismag' || userRole === 'superadmin') && (
         <div className="glass-card config-form-box" style={{ marginTop: '2rem' }}>
           <h3>BUAT AKUN BARU</h3>
           <p className="config-desc">
@@ -275,8 +275,8 @@ export default function SettingsPage() {
                   cursor: 'pointer'
                 }}
               >
-                <option value="trainer">Pelatih (Hanya Nilai & Absensi)</option>
-                <option value="admin">Full Akses (Admin Utama)</option>
+                <option value="pelatih">Pelatih (Hanya Nilai & Absensi)</option>
+                <option value="dismag">Full Akses (Dismag)</option>
                 <option value="superadmin">Superadmin (Full Akses & Manajemen Akun)</option>
               </select>
             </div>

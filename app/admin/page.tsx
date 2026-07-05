@@ -72,7 +72,7 @@ export default function AdminStatsPage() {
   }
 
   return (
-    <RoleGuard allowedRoles={['admin']}>
+    <RoleGuard allowedRoles={['dismag']}>
       <div>
         <h2 className="dashboard-title">Ringkasan Operasional</h2>
 

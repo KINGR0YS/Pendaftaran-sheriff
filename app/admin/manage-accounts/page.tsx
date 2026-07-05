@@ -201,11 +201,11 @@ export default function ManageAccountsPage() {
                     roleColor = '#f87171';
                     roleBg = 'rgba(239, 68, 68, 0.08)';
                     roleBorder = 'rgba(239, 68, 68, 0.2)';
-                  } else if (u.role === 'admin') {
+                  } else if (u.role === 'dismag') {
                     roleColor = '#d4af37';
                     roleBg = 'rgba(212, 175, 55, 0.08)';
                     roleBorder = 'rgba(212, 175, 55, 0.2)';
-                  } else if (u.role === 'trainer') {
+                  } else if (u.role === 'pelatih') {
                     roleColor = '#60a5fa';
                     roleBg = 'rgba(59, 130, 246, 0.08)';
                     roleBorder = 'rgba(59, 130, 246, 0.2)';

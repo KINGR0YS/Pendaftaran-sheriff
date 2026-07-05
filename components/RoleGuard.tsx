@@ -14,7 +14,7 @@ export default function RoleGuard({ allowedRoles, children }: RoleGuardProps) {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setRole(session?.user?.user_metadata?.role || 'admin');
+      setRole(session?.user?.user_metadata?.role || 'dismag');
       setLoading(false);
     });
   }, []);

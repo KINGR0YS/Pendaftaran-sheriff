@@ -138,7 +138,7 @@ export default function RosterPage() {
   };
 
   return (
-    <RoleGuard allowedRoles={['admin']}>
+    <RoleGuard allowedRoles={['dismag']}>
     <div>
       <div className="header-action-row">
         <h2 className="dashboard-title">

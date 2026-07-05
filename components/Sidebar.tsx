@@ -34,7 +34,7 @@ export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const [displayName, setDisplayName] = useState('Admin');
-  const [role, setRole] = useState<string>('admin');
+  const [role, setRole] = useState<string>('dismag');
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -46,7 +46,7 @@ export default function Sidebar() {
         || user.email?.split('@')[0]
         || 'Admin';
       setDisplayName(name);
-      setRole(user.user_metadata?.role || 'admin');
+      setRole(user.user_metadata?.role || 'dismag');
     });
   }, []);
 
@@ -55,11 +55,11 @@ export default function Sidebar() {
     router.push('/login');
   };
 
-  const isTrainer = role === 'trainer';
+  const isTrainer = role === 'pelatih';
   const isSuperAdmin = role === 'superadmin';
   
   let RoleIcon = Shield;
-  let roleLabel = 'ADMIN';
+  let roleLabel = 'DISMAG';
   let roleBg = 'rgba(212,175,55,0.12)';
   let roleColor = '#d4af37';
   let roleBorder = 'rgba(212,175,55,0.3)';

@@ -26,7 +26,7 @@ async function verifySuperAdmin(accessToken: string) {
     throw new Error('Sesi tidak valid.');
   }
 
-  const role = user.user_metadata?.role || 'admin';
+  const role = user.user_metadata?.role || 'dismag';
   if (role !== 'superadmin') {
     throw new Error('Hanya Superadmin yang memiliki akses ke fitur ini.');
   }
@@ -48,7 +48,7 @@ export async function listUsers(accessToken: string) {
         id: u.id,
         email: u.email || '',
         username: u.user_metadata?.username || u.email?.split('@')[0] || 'Unknown',
-        role: u.user_metadata?.role || 'admin',
+        role: u.user_metadata?.role || 'dismag',
         created_at: u.created_at,
         last_sign_in_at: u.last_sign_in_at
       }))
