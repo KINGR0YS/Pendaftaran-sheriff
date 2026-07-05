@@ -1,22 +1,40 @@
 'use client';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import Image from 'next/image';
-import { BarChart2, ClipboardList, ClipboardX, UsersRound, Settings } from 'lucide-react';
+import {
+  BarChart2, ClipboardList, ClipboardX, UsersRound,
+  Settings, Award, Calendar, LogOut, Shield, UserCog
+} from 'lucide-react';
 
-const sidebarItems = [
+const adminItems = [
   { href: '/admin', label: 'Ringkasan Utama', icon: <BarChart2 size={16} />, exact: true },
   { href: '/admin/applications', label: 'Formulir Masuk', icon: <ClipboardList size={16} /> },
   { href: '/admin/rejected', label: 'Riwayat Penolakan', icon: <ClipboardX size={16} /> },
   { href: '/admin/roster', label: 'Pendataan Probatus', icon: <UsersRound size={16} /> },
+];
+
+const trainingItems = [
+  { href: '/admin/nilai-probatus', label: 'Nilai Probatus', icon: <Award size={16} /> },
+  { href: '/admin/absensi-probatus', label: 'Absensi Probatus', icon: <Calendar size={16} /> },
+];
+
+const settingsItems = [
   { href: '/admin/settings', label: 'Pengaturan', icon: <Settings size={16} /> },
 ];
 
+interface SidebarGroup {
+  label: string;
+  items: typeof adminItems;
+}
+
 export default function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const [displayName, setDisplayName] = useState('Admin');
+  const [role, setRole] = useState<string>('admin');
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -28,37 +46,104 @@ export default function Sidebar() {
         || user.email?.split('@')[0]
         || 'Admin';
       setDisplayName(name);
+      setRole(user.user_metadata?.role || 'admin');
     });
   }, []);
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.push('/login');
+  };
+
+  const isTrainer = role === 'trainer';
+  const isSuperAdmin = role === 'superadmin';
+  
+  let RoleIcon = Shield;
+  let roleLabel = 'ADMIN';
+  let roleBg = 'rgba(212,175,55,0.12)';
+  let roleColor = '#d4af37';
+  let roleBorder = 'rgba(212,175,55,0.3)';
+
+  if (isTrainer) {
+    RoleIcon = UserCog;
+    roleLabel = 'PELATIH';
+    roleBg = 'rgba(59,130,246,0.12)';
+    roleColor = '#60a5fa';
+    roleBorder = 'rgba(59,130,246,0.3)';
+  } else if (isSuperAdmin) {
+    RoleIcon = Shield;
+    roleLabel = 'SUPERADMIN';
+    roleBg = 'rgba(239,68,68,0.12)';
+    roleColor = '#f87171';
+    roleBorder = 'rgba(239,68,68,0.3)';
+  }
+
+  const groups: SidebarGroup[] = [
+    { label: 'ADMIN PANEL', items: adminItems },
+    { label: 'TRAINING', items: trainingItems },
+    { 
+      label: 'SISTEM', 
+      items: [
+        ...settingsItems,
+        ...(isSuperAdmin ? [{ href: '/admin/manage-accounts', label: 'Manajemen Akun', icon: <UserCog size={16} /> }] : [])
+      ] 
+    },
+  ];
+
+  const renderItem = (item: typeof adminItems[0]) => {
+    const isActive = item.exact ? pathname === item.href : pathname.startsWith(item.href);
+    return (
+      <Link
+        key={item.href}
+        href={item.href}
+        className={`sidebar-menu-item ${isActive ? 'active' : ''}`}
+        style={{ textDecoration: 'none' }}
+      >
+        <span className="sidebar-item-icon">{item.icon}</span>
+        <span>{item.label}</span>
+      </Link>
+    );
+  };
+
   return (
     <aside className="dashboard-sidebar">
-      <div style={{ padding: '0 1rem', marginBottom: '1.5rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <div style={{ border: '1px solid rgba(251, 191, 36, 0.3)', background: 'rgba(15, 23, 42, 0.6)', padding: '0.25rem', borderRadius: 8, width: 40, height: 40, flexShrink: 0 }}>
-            <Image src="/logo.png" alt="Logo" width={32} height={32} style={{ objectFit: 'contain' }} />
-          </div>
-          <div style={{ minWidth: 0 }}>
-            <h4 style={{ fontSize: '0.85rem', color: 'var(--color-text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{displayName}</h4>
-            <span style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)' }}>DISMAG ON FIRE</span>
+      {/* User Profile Header */}
+      <div className="sidebar-profile">
+        <div className="sidebar-avatar">
+          <Image src="/logo.png" alt="Logo" width={32} height={32} style={{ objectFit: 'contain' }} />
+        </div>
+        <div className="sidebar-user-info">
+          <h4 className="sidebar-username">{displayName}</h4>
+          <div className="sidebar-role-badge" style={{ background: roleBg, color: roleColor, border: `1px solid ${roleBorder}` }}>
+            <RoleIcon size={10} />
+            <span>{roleLabel}</span>
           </div>
         </div>
       </div>
-      <nav className="sidebar-menu">
-        {sidebarItems.map((item) => {
-          const isActive = item.exact ? pathname === item.href : pathname.startsWith(item.href);
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`sidebar-menu-item ${isActive ? 'active' : ''}`}
-              style={{ textDecoration: 'none' }}
-            >
-              {item.icon} {item.label}
-            </Link>
-          );
-        })}
+
+      <div className="sidebar-divider" />
+
+      {/* Nav Groups */}
+      <nav className="sidebar-nav">
+        {groups.map((group) => (
+          <div key={group.label} className="sidebar-group">
+            <span className="sidebar-group-label">{group.label}</span>
+            <div className="sidebar-menu">
+              {group.items.map(renderItem)}
+            </div>
+          </div>
+        ))}
       </nav>
+
+      <div className="sidebar-divider" style={{ marginTop: 'auto' }} />
+
+      {/* Logout */}
+      <div style={{ padding: '0.75rem' }}>
+        <button onClick={handleLogout} className="sidebar-logout-btn">
+          <LogOut size={15} />
+          <span>Keluar dari Akun</span>
+        </button>
+      </div>
     </aside>
   );
 }

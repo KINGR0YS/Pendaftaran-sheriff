@@ -4,6 +4,8 @@ import { supabase } from '@/lib/supabase';
 import { useToast } from '@/components/Toast';
 import Modal from '@/components/Modal';
 import { Eye, ShieldAlert, XCircle, CheckCircle2, Trash2, Inbox } from 'lucide-react';
+import RoleGuard from '@/components/RoleGuard';
+
 
 export default function ApplicationsPage() {
   const { showToast } = useToast();
@@ -11,7 +13,7 @@ export default function ApplicationsPage() {
   const [statusFilter, setStatusFilter] = useState('pending');
   const [selectedApp, setSelectedApp] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [adminEmail, setAdminEmail] = useState('System Admin');
+  const [displayName, setDisplayName] = useState('System Admin');
   const [isLoading, setIsLoading] = useState(true);
 
   // Reject Modal State
@@ -23,8 +25,14 @@ export default function ApplicationsPage() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user?.email) {
-        setAdminEmail(session.user.email);
+      if (session?.user) {
+        const user = session.user;
+        const name = user.user_metadata?.username
+          || user.user_metadata?.display_name
+          || user.user_metadata?.full_name
+          || user.email?.split('@')[0]
+          || 'System Admin';
+        setDisplayName(name);
       }
     });
   }, []);
@@ -64,7 +72,7 @@ export default function ApplicationsPage() {
       // 1. Update status and processed_by
       const { error: appErr } = await supabase.from('applications').update({ 
         status: 'approved',
-        processed_by: adminEmail
+        processed_by: displayName
       }).eq('id', app.id);
       if (appErr) throw appErr;
 
@@ -107,7 +115,7 @@ export default function ApplicationsPage() {
       const { error } = await supabase.from('applications').update({
         status: 'rejected',
         rejection_reason: finalReason,
-        processed_by: adminEmail
+        processed_by: displayName
       }).eq('id', appToReject.id);
       if (error) throw error;
 
@@ -145,6 +153,7 @@ export default function ApplicationsPage() {
   };
 
   return (
+    <RoleGuard allowedRoles={['admin']}>
     <div>
       <div className="header-action-row">
         <h2 className="dashboard-title">
@@ -404,5 +413,6 @@ export default function ApplicationsPage() {
         </form>
       </Modal>
     </div>
+    </RoleGuard>
   );
 }

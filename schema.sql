@@ -104,5 +104,51 @@ CREATE TRIGGER set_updated_at
   EXECUTE FUNCTION update_updated_at_column();
 
 -- -------------------------------------------------------
--- SELESAI — Database siap digunakan.
+-- LANGKAH 5: Tabel dan Kolom Nilai Probatus (Tambahan)
 -- -------------------------------------------------------
+ALTER TABLE applications ADD COLUMN IF NOT EXISTS probatus_score INTEGER DEFAULT 0;
+
+CREATE TABLE IF NOT EXISTS probatus_evaluations (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  application_id UUID NOT NULL REFERENCES applications(id) ON DELETE CASCADE,
+  amount INTEGER NOT NULL,
+  evaluation_type TEXT NOT NULL, -- 'tambah' | 'kurangi'
+  reason TEXT NOT NULL,
+  evaluator_name TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+ALTER TABLE probatus_evaluations DISABLE ROW LEVEL SECURITY;
+
+-- -------------------------------------------------------
+-- LANGKAH 6: Tabel Absensi Probatus (Tambahan)
+-- -------------------------------------------------------
+CREATE TABLE IF NOT EXISTS probatus_attendance (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  application_id UUID NOT NULL REFERENCES applications(id) ON DELETE CASCADE,
+  attendance_date DATE NOT NULL,
+  status TEXT NOT NULL, -- 'Hadir' | 'Izin' | 'Sakit' | 'Alfa'
+  recorded_by TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(application_id, attendance_date)
+);
+
+ALTER TABLE probatus_attendance DISABLE ROW LEVEL SECURITY;
+
+-- -------------------------------------------------------
+-- LANGKAH 7: Dokumentasi Autentikasi & Role (RBAC)
+-- -------------------------------------------------------
+-- Halaman website ini menggunakan sistem otentikasi bawaan Supabase Auth.
+-- Hak akses (Role) disimpan pada metadata pengguna (user_metadata) dengan skema:
+--
+-- 1. 'superadmin' : Akses penuh ke seluruh halaman admin & panel Manajemen Akun.
+-- 2. 'admin'      : Akses penuh ke seluruh halaman admin, kecuali Manajemen Akun.
+-- 3. 'trainer'    : Akses terbatas (hanya Nilai Probatus, Absensi, dan Pengaturan terbatas).
+--
+-- Pendaftaran akun baru langsung dilakukan dari halaman Pengaturan (Settings)
+-- menggunakan parameter metadata role di bawah opsi pendaftaran.
+--
+-- SELESAI — Susunan data database & dokumentasi role siap digunakan.
+-- -------------------------------------------------------
+
+

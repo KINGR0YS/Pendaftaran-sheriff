@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useToast } from '@/components/Toast';
 import { supabase } from '@/lib/supabase';
-import { Save, KeyRound } from 'lucide-react';
+import { Save, KeyRound, UserPlus } from 'lucide-react';
 
 export default function SettingsPage() {
   const { showToast } = useToast();
@@ -15,9 +15,23 @@ export default function SettingsPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isChangingPassword, setIsChangingPassword] = useState(false);
 
+  // Role & Pembuatan Akun State
+  const [userRole, setUserRole] = useState<string>('admin');
+  const [newEmail, setNewEmail] = useState('');
+  const [newUsername, setNewUsername] = useState('');
+  const [newAccountPassword, setNewAccountPassword] = useState('');
+  const [selectedRole, setSelectedRole] = useState<'admin' | 'trainer' | 'superadmin'>('trainer');
+  const [isCreatingAccount, setIsCreatingAccount] = useState(false);
+
   useEffect(() => {
     setRecruitmentStatus(localStorage.getItem('recruitment_status') || 'open');
     setActiveBatch(localStorage.getItem('active_batch') || '1');
+    
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        setUserRole(session.user.user_metadata?.role || 'admin');
+      }
+    });
   }, []);
 
   const handleSaveRecruitmentSettings = () => {
@@ -54,6 +68,56 @@ export default function SettingsPage() {
     }
   };
 
+  const handleCreateAccount = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newEmail.trim() || !newUsername.trim() || !newAccountPassword.trim()) {
+      showToast('Semua field wajib diisi untuk membuat akun baru.', 'error');
+      return;
+    }
+    if (newAccountPassword.length < 6) {
+      showToast('Password minimal harus 6 karakter.', 'error');
+      return;
+    }
+    
+    setIsCreatingAccount(true);
+    try {
+      const { createClient } = await import('@supabase/supabase-js');
+      const tempSupabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
+        {
+          auth: {
+            persistSession: false,
+            autoRefreshToken: false
+          }
+        }
+      );
+
+      const { error } = await tempSupabase.auth.signUp({
+        email: newEmail.trim(),
+        password: newAccountPassword,
+        options: {
+          data: {
+            role: selectedRole,
+            username: newUsername.trim()
+          }
+        }
+      });
+
+      if (error) throw error;
+      
+      showToast(`Akun baru (${selectedRole}) untuk ${newUsername} berhasil dibuat!`, 'success');
+      setNewEmail('');
+      setNewUsername('');
+      setNewAccountPassword('');
+    } catch (err: any) {
+      showToast(`Gagal membuat akun: ${err.message}`, 'error');
+    } finally {
+      setIsCreatingAccount(false);
+    }
+  };
+
+
   return (
     <div>
       <h2 className="dashboard-title">Pengaturan</h2>
@@ -61,43 +125,45 @@ export default function SettingsPage() {
         Kelola pengaturan rekrutmen dan angkatan Sheriff Kerajaan Roxwood.
       </p>
 
-      {/* Recruitment Settings */}
-      <div className="glass-card config-form-box" style={{ marginTop: '1.5rem' }}>
-        <h3>Pengaturan Status & Angkatan</h3>
-        <p className="config-desc">
-          Atur Status Pembukaan Pendaftaran Sheriff Kerajaan Roxwood.
-        </p>
+      {/* Recruitment Settings — Hanya untuk Admin & Superadmin */}
+      {(userRole === 'admin' || userRole === 'superadmin') && (
+        <div className="glass-card config-form-box" style={{ marginTop: '1.5rem' }}>
+          <h3>Pengaturan Status & Angkatan</h3>
+          <p className="config-desc">
+            Atur Status Pembukaan Pendaftaran Sheriff Kerajaan Roxwood.
+          </p>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1rem' }}>
-          <div className="form-group">
-            <label htmlFor="config-recruitment-status">Status Rekrutmen</label>
-            <select
-              id="config-recruitment-status"
-              value={recruitmentStatus}
-              onChange={(e) => setRecruitmentStatus(e.target.value)}
-            >
-              <option value="open">Buka (Open)</option>
-              <option value="closed">Tutup (Closed)</option>
-            </select>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1rem' }}>
+            <div className="form-group">
+              <label htmlFor="config-recruitment-status">Status Rekrutmen</label>
+              <select
+                id="config-recruitment-status"
+                value={recruitmentStatus}
+                onChange={(e) => setRecruitmentStatus(e.target.value)}
+              >
+                <option value="open">Buka (Open)</option>
+                <option value="closed">Tutup (Closed)</option>
+              </select>
+            </div>
+            <div className="form-group">
+              <label htmlFor="config-active-batch">Angkatan Aktif Saat Ini</label>
+              <input
+                type="text"
+                id="config-active-batch"
+                value={activeBatch}
+                onChange={(e) => setActiveBatch(e.target.value)}
+                placeholder="Contoh: 1 atau 1.1"
+              />
+            </div>
           </div>
-          <div className="form-group">
-            <label htmlFor="config-active-batch">Angkatan Aktif Saat Ini</label>
-            <input
-              type="text"
-              id="config-active-batch"
-              value={activeBatch}
-              onChange={(e) => setActiveBatch(e.target.value)}
-              placeholder="Contoh: 1 atau 1.1"
-            />
+
+          <div className="config-actions">
+            <button className="btn btn-primary" onClick={handleSaveRecruitmentSettings}>
+              Simpan Pengaturan Rekrutmen <Save size={16} />
+            </button>
           </div>
         </div>
-
-        <div className="config-actions">
-          <button className="btn btn-primary" onClick={handleSaveRecruitmentSettings}>
-            Simpan Pengaturan Rekrutmen <Save size={16} />
-          </button>
-        </div>
-      </div>
+      )}
 
       {/* Ganti Password Section */}
       <div className="glass-card config-form-box" style={{ marginTop: '2rem' }}>
@@ -147,6 +213,82 @@ export default function SettingsPage() {
           </div>
         </form>
       </div>
+
+      {/* Pembuatan Akun Baru (Hanya untuk Admin & Superadmin) */}
+      {(userRole === 'admin' || userRole === 'superadmin') && (
+        <div className="glass-card config-form-box" style={{ marginTop: '2rem' }}>
+          <h3>BUAT AKUN BARU</h3>
+          <p className="config-desc">
+            Daftarkan akun admin baru atau pelatih untuk mengelola website pendaftaran.
+          </p>
+
+          <form onSubmit={handleCreateAccount} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.5rem', alignItems: 'end' }}>
+            <div className="form-group">
+              <label htmlFor="new-email">Email Kantor <span className="required">*</span></label>
+              <input
+                type="email"
+                id="new-email"
+                value={newEmail}
+                onChange={(e) => setNewEmail(e.target.value)}
+                placeholder="Contoh: pelatih1@roxwood.gov"
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="new-username">Nama Pengguna <span className="required">*</span></label>
+              <input
+                type="text"
+                id="new-username"
+                value={newUsername}
+                onChange={(e) => setNewUsername(e.target.value)}
+                placeholder="Contoh: Frank Austin"
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="new-account-password">Kata Sandi <span className="required">*</span></label>
+              <input
+                type="password"
+                id="new-account-password"
+                value={newAccountPassword}
+                onChange={(e) => setNewAccountPassword(e.target.value)}
+                placeholder="Minimal 6 karakter"
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="selected-role">Hak Akses / Peran <span className="required">*</span></label>
+              <select
+                id="selected-role"
+                value={selectedRole}
+                onChange={(e) => setSelectedRole(e.target.value as any)}
+                required
+                style={{
+                  width: '100%',
+                  padding: '0.6rem 0.8rem',
+                  background: 'rgba(5, 7, 13, 0.6)',
+                  border: '1px solid var(--color-border-custom)',
+                  borderRadius: '6px',
+                  color: 'var(--color-text-primary)',
+                  fontSize: '0.85rem',
+                  outline: 'none',
+                  cursor: 'pointer'
+                }}
+              >
+                <option value="trainer">Pelatih (Hanya Nilai & Absensi)</option>
+                <option value="admin">Full Akses (Admin Utama)</option>
+                <option value="superadmin">Superadmin (Full Akses & Manajemen Akun)</option>
+              </select>
+            </div>
+
+            <div className="config-actions" style={{ gridColumn: '1 / -1', marginTop: '1rem', display: 'flex', justifyContent: 'flex-end' }}>
+              <button type="submit" className="btn btn-primary" disabled={isCreatingAccount}>
+                {isCreatingAccount ? 'Mendaftarkan...' : 'Buat Akun'} <UserPlus size={16} />
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
     </div>
   );
 }

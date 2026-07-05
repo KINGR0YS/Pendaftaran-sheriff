@@ -4,6 +4,8 @@ import { supabase } from '@/lib/supabase';
 import { useToast } from '@/components/Toast';
 import Modal from '@/components/Modal';
 import { Eye, Inbox, Search } from 'lucide-react';
+import RoleGuard from '@/components/RoleGuard';
+
 
 export default function RejectedPage() {
   const { showToast } = useToast();
@@ -39,6 +41,7 @@ export default function RejectedPage() {
   );
 
   return (
+    <RoleGuard allowedRoles={['admin']}>
     <div>
       <div className="header-action-row">
         <h2 className="dashboard-title">
@@ -149,5 +152,6 @@ export default function RejectedPage() {
         )}
       </Modal>
     </div>
+    </RoleGuard>
   );
 }

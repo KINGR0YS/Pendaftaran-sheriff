@@ -4,6 +4,8 @@ import { supabase } from '@/lib/supabase';
 import { useToast } from '@/components/Toast';
 import Modal from '@/components/Modal';
 import { UserPlus, Eye, Search, Inbox } from 'lucide-react';
+import RoleGuard from '@/components/RoleGuard';
+
 
 export default function RosterPage() {
   const { showToast } = useToast();
@@ -136,6 +138,7 @@ export default function RosterPage() {
   };
 
   return (
+    <RoleGuard allowedRoles={['admin']}>
     <div>
       <div className="header-action-row">
         <h2 className="dashboard-title">
@@ -424,5 +427,6 @@ export default function RosterPage() {
         )}
       </Modal>
     </div>
+    </RoleGuard>
   );
 }

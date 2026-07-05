@@ -161,11 +161,11 @@ export default function ApplyPage() {
               <div className="form-grid">
                 <div className="form-group">
                   <label htmlFor="ooc_name">Nama Lengkap (OOC) <span className="required">*</span></label>
-                  <input type="text" id="ooc_name" value={formData.ooc_name} onChange={handleChange} placeholder="Contoh: Budi Santoso" required />
+                  <input type="text" id="ooc_name" value={formData.ooc_name} onChange={handleChange} placeholder="Contoh: Roys M. Hawkins" required />
                 </div>
                 <div className="form-group">
                   <label htmlFor="passport_name_ooc">Nama Paspor (OOC) <span className="required">*</span></label>
-                  <input type="text" id="passport_name_ooc" value={formData.passport_name_ooc} onChange={handleChange} placeholder="Contoh: Frank_Austin" required />
+                  <input type="text" id="passport_name_ooc" value={formData.passport_name_ooc} onChange={handleChange} placeholder="Contoh: Roys_Hawkins" required />
                 </div>
                 <div className="form-group">
                   <label htmlFor="ooc_age">Umur Real Life <span className="required">*</span></label>
@@ -181,7 +181,7 @@ export default function ApplyPage() {
                 </div>
                 <div className="form-group">
                   <label htmlFor="discord_id">Discord ID / Username <span className="required">*</span></label>
-                  <input type="text" id="discord_id" value={formData.discord_id} onChange={handleChange} placeholder="Contoh: budi#1234 atau budis" required />
+                  <input type="text" id="discord_id" value={formData.discord_id} onChange={handleChange} placeholder="Contoh: Roys_123" required />
                 </div>
                 <div className="form-group">
                   <label htmlFor="steam_hex">Steam HEX Code / License <span className="required">*</span></label>
@@ -214,7 +214,7 @@ export default function ApplyPage() {
               <div className="form-grid">
                 <div className="form-group">
                   <label htmlFor="ic_name">Nama Karakter (IC) <span className="required">*</span></label>
-                  <input type="text" id="ic_name" value={formData.ic_name} onChange={handleChange} placeholder="Contoh: Frank Austin" required />
+                  <input type="text" id="ic_name" value={formData.ic_name} onChange={handleChange} placeholder="Contoh: Roys M. Hawkins" required />
                 </div>
                 <div className="form-group">
                   <label htmlFor="ic_age">Umur Karakter <span className="required">*</span></label>
