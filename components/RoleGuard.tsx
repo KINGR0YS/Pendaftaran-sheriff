@@ -48,7 +48,8 @@ export default function RoleGuard({ allowedRoles, children }: RoleGuardProps) {
     );
   }
 
-  const hasAccess = role === 'superadmin' || allowedRoles.includes(role!);
+  const resolvedRole = role === 'admin' ? 'dismag' : (role === 'trainer' ? 'pelatih' : role);
+  const hasAccess = resolvedRole === 'superadmin' || allowedRoles.includes(resolvedRole!);
 
   return (
     <div style={{ position: 'relative' }}>

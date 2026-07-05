@@ -48,7 +48,7 @@ export async function listUsers(accessToken: string) {
         id: u.id,
         email: u.email || '',
         username: u.user_metadata?.username || u.email?.split('@')[0] || 'Unknown',
-        role: u.user_metadata?.role || 'dismag',
+        role: u.user_metadata?.role === 'admin' ? 'dismag' : (u.user_metadata?.role === 'trainer' ? 'pelatih' : (u.user_metadata?.role || 'dismag')),
         created_at: u.created_at,
         last_sign_in_at: u.last_sign_in_at
       }))
