@@ -67,13 +67,20 @@ export default function RosterPage() {
   );
 
   const sortedAndFiltered = [...filtered].sort((a, b) => {
-    const batchA = parseInt(a.batch) || 0;
-    const batchB = parseInt(b.batch) || 0;
+    const batchA = parseFloat(a.batch) || 0;
+    const batchB = parseFloat(b.batch) || 0;
     if (batchB !== batchA) {
       return batchB - batchA; // Newest batch first (descending)
     }
+    // If float values are equal, compare exact batch strings to prevent interleaving of any different textual batches
+    const batchStrA = a.batch || '';
+    const batchStrB = b.batch || '';
+    if (batchStrB !== batchStrA) {
+      return batchStrB.localeCompare(batchStrA);
+    }
     return (a.ic_name || '').localeCompare(b.ic_name || '');
   });
+
 
   const handleAddMember = async (e: React.FormEvent) => {
     e.preventDefault();
