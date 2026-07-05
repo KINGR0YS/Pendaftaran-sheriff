@@ -70,6 +70,10 @@ export default function SettingsPage() {
 
   const handleCreateAccount = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (userRole !== 'superadmin') {
+      showToast('Hanya superadmin yang diizinkan untuk membuat akun baru.', 'error');
+      return;
+    }
     if (!newEmail.trim() || !newUsername.trim() || !newAccountPassword.trim()) {
       showToast('Semua field wajib diisi untuk membuat akun baru.', 'error');
       return;
@@ -214,8 +218,8 @@ export default function SettingsPage() {
         </form>
       </div>
 
-      {/* Pembuatan Akun Baru (Hanya untuk Dismag & Superadmin) */}
-      {(userRole === 'dismag' || userRole === 'superadmin') && (
+      {/* Pembuatan Akun Baru (Hanya untuk Superadmin) */}
+      {userRole === 'superadmin' && (
         <div className="glass-card config-form-box" style={{ marginTop: '2rem' }}>
           <h3>BUAT AKUN BARU</h3>
           <p className="config-desc">
