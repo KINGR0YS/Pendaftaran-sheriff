@@ -139,7 +139,6 @@ ALTER TABLE probatus_attendance DISABLE ROW LEVEL SECURITY;
 -- LANGKAH 7: Dokumentasi Autentikasi & Role (RBAC)
 -- -------------------------------------------------------
 -- Halaman website ini menggunakan sistem otentikasi bawaan Supabase Auth.
--- Halaman website ini menggunakan sistem otentikasi bawaan Supabase Auth.
 -- Hak akses (Role) disimpan pada metadata pengguna (user_metadata) dengan skema:
 --
 -- 1. 'superadmin' : Akses penuh ke seluruh halaman admin & panel Manajemen Akun.
