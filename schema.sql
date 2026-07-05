@@ -139,6 +139,7 @@ ALTER TABLE probatus_attendance DISABLE ROW LEVEL SECURITY;
 -- LANGKAH 7: Dokumentasi Autentikasi & Role (RBAC)
 -- -------------------------------------------------------
 -- Halaman website ini menggunakan sistem otentikasi bawaan Supabase Auth.
+-- Halaman website ini menggunakan sistem otentikasi bawaan Supabase Auth.
 -- Hak akses (Role) disimpan pada metadata pengguna (user_metadata) dengan skema:
 --
 -- 1. 'superadmin' : Akses penuh ke seluruh halaman admin & panel Manajemen Akun.
@@ -150,5 +151,30 @@ ALTER TABLE probatus_attendance DISABLE ROW LEVEL SECURITY;
 --
 -- SELESAI — Susunan data database & dokumentasi role siap digunakan.
 -- -------------------------------------------------------
+
+-- -------------------------------------------------------
+-- LANGKAH 8: Tabel Absensi Pelatih & Pengawas (Staff)
+-- -------------------------------------------------------
+CREATE TABLE IF NOT EXISTS staff_attendance_members (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID UNIQUE NOT NULL,
+  username TEXT NOT NULL,
+  role TEXT NOT NULL, -- 'pelatih' | 'dismag' | 'superadmin'
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS staff_attendance (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID NOT NULL REFERENCES staff_attendance_members(user_id) ON DELETE CASCADE,
+  attendance_date DATE NOT NULL,
+  status TEXT NOT NULL, -- 'Hadir' | 'Izin' | 'Sakit' | 'Alfa'
+  recorded_by TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(user_id, attendance_date)
+);
+
+ALTER TABLE staff_attendance_members DISABLE ROW LEVEL SECURITY;
+ALTER TABLE staff_attendance DISABLE ROW LEVEL SECURITY;
+
 
 

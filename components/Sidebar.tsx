@@ -19,6 +19,7 @@ const adminItems = [
 const trainingItems = [
   { href: '/admin/nilai-probatus', label: 'Nilai Probatus', icon: <Award size={16} /> },
   { href: '/admin/absensi-probatus', label: 'Absensi Probatus', icon: <Calendar size={16} /> },
+  { href: '/admin/absensi-pelatih', label: 'Absensi Pelatih', icon: <Calendar size={16} /> },
 ];
 
 const settingsItems = [
