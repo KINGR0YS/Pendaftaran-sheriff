@@ -425,59 +425,59 @@ ALTER TABLE staff_attendance DISABLE ROW LEVEL SECURITY;`}
       <div style={{ maxWidth: '100%', overflowX: 'hidden' }}>
         
         {/* Header Action Row */}
-        <div className="header-action-row" style={{ display: 'flex', flexWrap: 'wrap', gap: '1.5rem', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
+        <div className="header-action-row" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
           <h2 className="dashboard-title" style={{ margin: 0 }}>
             Absensi Pelatih & Pengawas (1 Minggu)
             <span style={{ marginLeft: '0.75rem', fontSize: '0.8rem', background: 'var(--color-bg-card)', padding: '0.2rem 0.6rem', borderRadius: '12px', border: '1px solid var(--color-border-custom)', color: 'var(--color-text-secondary)' }}>
               {isLoading ? '...' : `${staffRoster.length} Staff`}
             </span>
           </h2>
+          <button className="btn btn-sm btn-success" onClick={handleOpenAddModal}>
+            <UserPlus size={14} /> Tambah Anggota Absen
+          </button>
+        </div>
 
-          <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
-            <button className="btn btn-sm btn-success" onClick={handleOpenAddModal}>
-              <UserPlus size={14} /> Tambah Anggota Absen
-            </button>
+        {/* Filter and Config Bar */}
+        <div className="glass-card" style={{ display: 'flex', flexWrap: 'wrap', gap: '1.5rem', alignItems: 'center', padding: '1rem 1.25rem', marginBottom: '1.5rem', background: 'rgba(10, 15, 30, 0.7)', border: '1px solid var(--color-border-custom)', borderRadius: '8px' }}>
+          <div className="form-group" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.75rem', flex: '1', minWidth: '240px' }}>
+            <label htmlFor="top-evaluator-name" style={{ margin: 0, fontSize: '0.85rem', whiteSpace: 'nowrap', fontWeight: 600, color: 'var(--color-text-secondary)' }}>Nama Pencatat:</label>
+            <input
+              type="text"
+              id="top-evaluator-name"
+              value={evaluatorName}
+              onChange={(e) => setEvaluatorName(e.target.value)}
+              placeholder="Nama Pencatat (Wajib)"
+              style={{
+                padding: '0.5rem 0.75rem',
+                fontSize: '0.85rem',
+                flex: '1',
+                background: 'rgba(5, 7, 13, 0.6)',
+                border: '1px solid var(--color-border-custom)',
+                borderRadius: '6px',
+                color: 'var(--color-text-primary)',
+                outline: 'none'
+              }}
+            />
+          </div>
 
-            <div className="form-group" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <label htmlFor="top-evaluator-name" style={{ margin: 0, fontSize: '0.85rem', whiteSpace: 'nowrap', fontWeight: 600 }}>Nama Pencatat:</label>
-              <input
-                type="text"
-                id="top-evaluator-name"
-                value={evaluatorName}
-                onChange={(e) => setEvaluatorName(e.target.value)}
-                placeholder="Nama Pencatat (Wajib)"
-                style={{
-                  padding: '0.4rem 0.6rem',
-                  fontSize: '0.85rem',
-                  width: '180px',
-                  background: 'rgba(5, 7, 13, 0.6)',
-                  border: '1px solid var(--color-border-custom)',
-                  borderRadius: '6px',
-                  color: 'var(--color-text-primary)',
-                  outline: 'none'
-                }}
-              />
-            </div>
-
-            <div className="form-group" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <label htmlFor="start-date-picker" style={{ margin: 0, fontSize: '0.85rem', whiteSpace: 'nowrap', fontWeight: 600 }}>Tanggal Mulai:</label>
-              <input
-                type="date"
-                id="start-date-picker"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                style={{
-                  padding: '0.4rem 0.6rem',
-                  fontSize: '0.85rem',
-                  background: 'rgba(5, 7, 13, 0.6)',
-                  border: '1px solid var(--color-border-custom)',
-                  borderRadius: '6px',
-                  color: 'var(--color-text-primary)',
-                  outline: 'none',
-                  cursor: 'pointer'
-                }}
-              />
-            </div>
+          <div className="form-group" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.75rem', minWidth: '240px' }}>
+            <label htmlFor="start-date-picker" style={{ margin: 0, fontSize: '0.85rem', whiteSpace: 'nowrap', fontWeight: 600, color: 'var(--color-text-secondary)' }}>Tanggal Mulai:</label>
+            <input
+              type="date"
+              id="start-date-picker"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              style={{
+                padding: '0.5rem 0.75rem',
+                fontSize: '0.85rem',
+                background: 'rgba(5, 7, 13, 0.6)',
+                border: '1px solid var(--color-border-custom)',
+                borderRadius: '6px',
+                color: 'var(--color-text-primary)',
+                outline: 'none',
+                cursor: 'pointer'
+              }}
+            />
           </div>
         </div>
 
@@ -599,7 +599,10 @@ ALTER TABLE staff_attendance DISABLE ROW LEVEL SECURITY;`}
                           <td style={{ padding: '0.75rem 1rem', fontWeight: 'bold', color: '#10b981', position: 'sticky', left: 0, zIndex: 5, background: '#0d111d', borderRight: '2px solid var(--color-border-custom)' }}>
                             TOTAL GAJI PELATIH
                           </td>
-                          <td colSpan={9} style={{ padding: '0.75rem 1rem', textAlign: 'right', fontWeight: 'bold', color: '#10b981' }}>
+                          <td colSpan={8} style={{ padding: '0.75rem 1rem', textAlign: 'right', fontWeight: 'bold', color: 'var(--color-text-secondary)', fontSize: '0.85rem' }}>
+                            Subtotal Gaji:
+                          </td>
+                          <td style={{ padding: '0.75rem 1rem', textAlign: 'center', fontWeight: 'bold', color: '#10b981', background: 'rgba(16, 185, 129, 0.12)' }}>
                             {formatRupiah(calculateTotalGroupSalary(pelatihList))}
                           </td>
                           <td></td>
@@ -706,7 +709,10 @@ ALTER TABLE staff_attendance DISABLE ROW LEVEL SECURITY;`}
                           <td style={{ padding: '0.75rem 1rem', fontWeight: 'bold', color: '#10b981', position: 'sticky', left: 0, zIndex: 5, background: '#0d111d', borderRight: '2px solid var(--color-border-custom)' }}>
                             TOTAL GAJI PENGAWAS
                           </td>
-                          <td colSpan={9} style={{ padding: '0.75rem 1rem', textAlign: 'right', fontWeight: 'bold', color: '#10b981' }}>
+                          <td colSpan={8} style={{ padding: '0.75rem 1rem', textAlign: 'right', fontWeight: 'bold', color: 'var(--color-text-secondary)', fontSize: '0.85rem' }}>
+                            Subtotal Gaji:
+                          </td>
+                          <td style={{ padding: '0.75rem 1rem', textAlign: 'center', fontWeight: 'bold', color: '#10b981', background: 'rgba(16, 185, 129, 0.12)' }}>
                             {formatRupiah(calculateTotalGroupSalary(pengawasList))}
                           </td>
                           <td></td>
