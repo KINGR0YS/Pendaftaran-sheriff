@@ -13,7 +13,7 @@ const adminItems = [
   { href: '/admin', label: 'Ringkasan Utama', icon: <BarChart2 size={16} />, exact: true },
   { href: '/admin/applications', label: 'Formulir Masuk', icon: <ClipboardList size={16} /> },
   { href: '/admin/rejected', label: 'Riwayat Penolakan', icon: <ClipboardX size={16} /> },
-  { href: '/admin/roster', label: 'Pendataan Probatus', icon: <UsersRound size={16} /> },
+  { href: '/admin/probatus', label: 'Pendataan Probatus', icon: <UsersRound size={16} /> },
 ];
 
 const trainingItems = [
