@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase';
 import Image from 'next/image';
 import {
   BarChart2, ClipboardList, ClipboardX, UsersRound,
-  Settings, Award, Calendar, LogOut, Shield, UserCog
+  Settings, Award, Calendar, LogOut, Shield, UserCog, BookOpen
 } from 'lucide-react';
 
 const adminItems = [
@@ -20,6 +20,7 @@ const trainingItems = [
   { href: '/admin/nilai-probatus', label: 'Nilai Probatus', icon: <Award size={16} /> },
   { href: '/admin/absensi-probatus', label: 'Absensi Probatus', icon: <Calendar size={16} /> },
   { href: '/admin/absensi-pelatih', label: 'Absensi Pelatih', icon: <Calendar size={16} /> },
+  { href: '/admin/buku-panduan', label: 'Buku Panduan', icon: <BookOpen size={16} /> },
 ];
 
 const settingsItems = [
