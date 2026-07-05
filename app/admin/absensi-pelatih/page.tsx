@@ -513,11 +513,11 @@ ALTER TABLE staff_attendance DISABLE ROW LEVEL SECURITY;`}
                                   onChange={(e) => handleSaveAttendance(member.user_id, dateStr, e.target.value)}
                                   style={getSelectStyle(currentVal)}
                                 >
-                                  <option value="">--</option>
-                                  <option value="HADIR">HADIR</option>
-                                  <option value="IZIN">IZIN</option>
-                                  <option value="SAKIT">SAKIT</option>
-                                  <option value="TIDAK HADIR">TIDAK HADIR</option>
+                                  <option value="" style={{ background: '#0e1320', color: 'var(--color-text-secondary)' }}>-</option>
+                                  <option value="HADIR" style={{ background: '#0e1320', color: '#10b981' }}>HADIR</option>
+                                  <option value="IZIN" style={{ background: '#0e1320', color: '#fbbf24' }}>IZIN</option>
+                                  <option value="SAKIT" style={{ background: '#0e1320', color: '#60a5fa' }}>SAKIT</option>
+                                  <option value="TIDAK HADIR" style={{ background: '#0e1320', color: '#f87171' }}>TIDAK HADIR</option>
                                 </select>
                               </td>
                             );
@@ -595,11 +595,11 @@ ALTER TABLE staff_attendance DISABLE ROW LEVEL SECURITY;`}
                                   onChange={(e) => handleSaveAttendance(member.user_id, dateStr, e.target.value)}
                                   style={getSelectStyle(currentVal)}
                                 >
-                                  <option value="">--</option>
-                                  <option value="HADIR">HADIR</option>
-                                  <option value="IZIN">IZIN</option>
-                                  <option value="SAKIT">SAKIT</option>
-                                  <option value="TIDAK HADIR">TIDAK HADIR</option>
+                                  <option value="" style={{ background: '#0e1320', color: 'var(--color-text-secondary)' }}>-</option>
+                                  <option value="HADIR" style={{ background: '#0e1320', color: '#10b981' }}>HADIR</option>
+                                  <option value="IZIN" style={{ background: '#0e1320', color: '#fbbf24' }}>IZIN</option>
+                                  <option value="SAKIT" style={{ background: '#0e1320', color: '#60a5fa' }}>SAKIT</option>
+                                  <option value="TIDAK HADIR" style={{ background: '#0e1320', color: '#f87171' }}>TIDAK HADIR</option>
                                 </select>
                               </td>
                             );
