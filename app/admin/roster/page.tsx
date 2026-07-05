@@ -17,6 +17,7 @@ export default function RosterPage() {
   const [activeBatch, setActiveBatch] = useState('1');
   const [adminEmail, setAdminEmail] = useState('System Admin');
   const [isLoading, setIsLoading] = useState(true);
+  const [sortBy, setSortBy] = useState<'batch' | 'name-asc' | 'name-desc'>('batch');
 
   const [form, setForm] = useState({
     ic_name: '',
@@ -67,18 +68,24 @@ export default function RosterPage() {
   );
 
   const sortedAndFiltered = [...filtered].sort((a, b) => {
-    const batchA = parseFloat(a.batch) || 0;
-    const batchB = parseFloat(b.batch) || 0;
-    if (batchB !== batchA) {
-      return batchB - batchA; // Newest batch first (descending)
+    if (sortBy === 'batch') {
+      const batchA = parseFloat(a.batch) || 0;
+      const batchB = parseFloat(b.batch) || 0;
+      if (batchB !== batchA) {
+        return batchB - batchA; // Newest batch first (descending)
+      }
+      // If float values are equal, compare exact batch strings to prevent interleaving of any different textual batches
+      const batchStrA = a.batch || '';
+      const batchStrB = b.batch || '';
+      if (batchStrB !== batchStrA) {
+        return batchStrB.localeCompare(batchStrA);
+      }
+      return (a.ic_name || '').localeCompare(b.ic_name || '');
+    } else if (sortBy === 'name-asc') {
+      return (a.ic_name || '').localeCompare(b.ic_name || '');
+    } else {
+      return (b.ic_name || '').localeCompare(a.ic_name || '');
     }
-    // If float values are equal, compare exact batch strings to prevent interleaving of any different textual batches
-    const batchStrA = a.batch || '';
-    const batchStrB = b.batch || '';
-    if (batchStrB !== batchStrA) {
-      return batchStrB.localeCompare(batchStrA);
-    }
-    return (a.ic_name || '').localeCompare(b.ic_name || '');
   });
 
 
@@ -159,15 +166,40 @@ export default function RosterPage() {
         </button>
       </div>
 
-      <div className="search-input-wrapper" style={{ maxWidth: 400 }}>
-        <Search size={16} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)' }} />
-        <input
-          type="text"
-          placeholder="Cari berdasarkan nama/callsign..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          style={{ paddingLeft: '2.25rem' }}
-        />
+      <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+        <div className="search-input-wrapper" style={{ flex: '1', minWidth: '280px', maxWidth: '400px', position: 'relative' }}>
+          <Search size={16} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)' }} />
+          <input
+            type="text"
+            placeholder="Cari berdasarkan nama/callsign..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            style={{ paddingLeft: '2.25rem', width: '100%' }}
+          />
+        </div>
+        
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <span style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', whiteSpace: 'nowrap' }}>Urutkan:</span>
+          <select
+            value={sortBy}
+            onChange={(e: any) => setSortBy(e.target.value)}
+            style={{
+              background: 'rgba(5, 7, 13, 0.6)',
+              border: '1px solid var(--color-border-custom)',
+              padding: '0.6rem 1rem',
+              borderRadius: '8px',
+              color: 'var(--color-text-primary)',
+              fontSize: '0.85rem',
+              outline: 'none',
+              cursor: 'pointer',
+              minWidth: '180px'
+            }}
+          >
+            <option value="batch">Angkatan (Terbaru)</option>
+            <option value="name-asc">Nama (A - Z)</option>
+            <option value="name-desc">Nama (Z - A)</option>
+          </select>
+        </div>
       </div>
 
       {isLoading ? (
@@ -205,7 +237,7 @@ export default function RosterPage() {
               {(() => {
                 let lastBatch: string | null = null;
                 return sortedAndFiltered.map((member) => {
-                  const showDivider = lastBatch !== member.batch;
+                  const showDivider = sortBy === 'batch' && lastBatch !== member.batch;
                   lastBatch = member.batch;
                   
                   return (
