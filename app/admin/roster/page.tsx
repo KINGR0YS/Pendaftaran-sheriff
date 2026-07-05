@@ -3,7 +3,7 @@ import { useEffect, useState, Fragment } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/components/Toast';
 import Modal from '@/components/Modal';
-import { UserPlus, Eye, Search, Inbox } from 'lucide-react';
+import { UserPlus, Eye, Search, Inbox, Trash2 } from 'lucide-react';
 import RoleGuard from '@/components/RoleGuard';
 
 
@@ -88,6 +88,27 @@ export default function RosterPage() {
     }
   });
 
+  const handleDeleteMember = async (id: string, name: string) => {
+    if (!window.confirm(`Apakah Anda yakin ingin menghapus data anggota ${name}? Tindakan ini tidak dapat dibatalkan.`)) {
+      return;
+    }
+    try {
+      const { error } = await supabase
+        .from('applications')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      showToast(`Data ${name} berhasil dihapus.`, 'success');
+      logActivity(`Menghapus data anggota roster: ${name}`);
+      setIsDetailModalOpen(false);
+      setSelectedMember(null);
+      loadRoster();
+    } catch (err: any) {
+      showToast(`Gagal menghapus data: ${err.message}`, 'error');
+    }
+  };
 
   const handleAddMember = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -389,7 +410,18 @@ export default function RosterPage() {
         open={isDetailModalOpen}
         onClose={() => setIsDetailModalOpen(false)}
         title="Detail Formulir Pendaftaran"
-        footer={<button className="btn btn-secondary" onClick={() => setIsDetailModalOpen(false)}>Tutup</button>}
+        footer={
+          <>
+            <button 
+              className="btn btn-danger" 
+              onClick={() => selectedMember && handleDeleteMember(selectedMember.id, selectedMember.ic_name)}
+              style={{ marginRight: 'auto', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+            >
+              <Trash2 size={14} /> Hapus Data
+            </button>
+            <button className="btn btn-secondary" onClick={() => setIsDetailModalOpen(false)}>Tutup</button>
+          </>
+        }
       >
         {selectedMember && (
           <div>
