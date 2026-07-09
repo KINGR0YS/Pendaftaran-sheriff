@@ -175,5 +175,31 @@ CREATE TABLE IF NOT EXISTS staff_attendance (
 ALTER TABLE staff_attendance_members DISABLE ROW LEVEL SECURITY;
 ALTER TABLE staff_attendance DISABLE ROW LEVEL SECURITY;
 
+-- -------------------------------------------------------
+-- LANGKAH 9: Tabel Log Aktivitas Sistem
+-- -------------------------------------------------------
+CREATE TABLE IF NOT EXISTS activity_logs (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  username TEXT NOT NULL,
+  role TEXT NOT NULL,
+  action TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+ALTER TABLE activity_logs DISABLE ROW LEVEL SECURITY;
 
 
+
+
+-- -------------------------------------------------------
+-- LANGKAH 10: Kolom Penilaian Interview
+-- -------------------------------------------------------
+ALTER TABLE applications ADD COLUMN IF NOT EXISTS interview_etika INTEGER DEFAULT NULL;
+ALTER TABLE applications ADD COLUMN IF NOT EXISTS interview_komunikasi INTEGER DEFAULT NULL;
+ALTER TABLE applications ADD COLUMN IF NOT EXISTS interview_penampilan INTEGER DEFAULT NULL;
+ALTER TABLE applications ADD COLUMN IF NOT EXISTS interview_pemahaman_peraturan INTEGER DEFAULT NULL;
+ALTER TABLE applications ADD COLUMN IF NOT EXISTS interview_pemahaman_kasus INTEGER DEFAULT NULL;
+ALTER TABLE applications ADD COLUMN IF NOT EXISTS interview_pengalaman_organisasi TEXT DEFAULT NULL;
+ALTER TABLE applications ADD COLUMN IF NOT EXISTS interview_pengalaman_instansi TEXT DEFAULT NULL;
+ALTER TABLE applications ADD COLUMN IF NOT EXISTS interview_evaluator TEXT DEFAULT NULL;
+ALTER TABLE applications ADD COLUMN IF NOT EXISTS interview_assessed_at TIMESTAMP WITH TIME ZONE DEFAULT NULL;

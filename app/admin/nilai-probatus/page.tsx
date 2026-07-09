@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase';
 import { useToast } from '@/components/Toast';
 import Modal from '@/components/Modal';
 import { Search, Inbox, Eye } from 'lucide-react';
+import { logActivity } from '@/lib/activity-log';
 
 export default function NilaiProbatusPage() {
   const { showToast } = useToast();
@@ -89,12 +90,6 @@ export default function NilaiProbatusPage() {
       console.error('Gagal memuat rekap absensi:', err);
     }
   }
-
-  const logActivity = (text: string) => {
-    const logs = JSON.parse(localStorage.getItem('activity_logs') || '[]');
-    logs.unshift({ time: new Date().toISOString(), text });
-    localStorage.setItem('activity_logs', JSON.stringify(logs.slice(0, 10)));
-  };
 
   const filtered = roster.filter(member =>
     member.ic_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -185,27 +180,26 @@ export default function NilaiProbatusPage() {
       <div className="header-action-row">
         <h2 className="dashboard-title">
           Penilaian Probatus
-          <span style={{ marginLeft: '0.75rem', fontSize: '0.8rem', background: 'var(--color-bg-card)', padding: '0.2rem 0.6rem', borderRadius: '12px', border: '1px solid var(--color-border-custom)', color: 'var(--color-text-secondary)' }}>
+          <span className="count-badge">
             {isLoading ? '...' : `${roster.length} Anggota Pelatihan`}
           </span>
         </h2>
       </div>
 
       <div className="search-input-wrapper" style={{ maxWidth: 400, marginBottom: '1.5rem' }}>
-        <Search size={16} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)' }} />
+        <Search size={16} />
         <input
           type="text"
           placeholder="Cari berdasarkan nama/steam hex..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          style={{ paddingLeft: '2.25rem' }}
         />
       </div>
 
       {isLoading ? (
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '300px', gap: '1rem' }}>
+        <div className="loading-container">
           <div className="loading-spinner" />
-          <p style={{ color: 'var(--color-text-muted)', fontSize: '0.85rem' }}>Memuat data...</p>
+          <p>Memuat data...</p>
         </div>
       ) : filtered.length === 0 ? (
         <div className="empty-state">
@@ -298,11 +292,11 @@ export default function NilaiProbatusPage() {
       >
         {evalTargetMember && (
           <form onSubmit={handleSaveEvaluation}>
-            <div style={{ marginBottom: '1.25rem', padding: '0.75rem', background: 'rgba(255, 255, 255, 0.03)', borderRadius: '6px', border: '1px solid var(--color-border-custom)' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', fontSize: '0.85rem' }}>
+            <div className="eval-info-box">
+              <div className="eval-info-grid">
                 <div><strong>Nama IC:</strong> {evalTargetMember.ic_name}</div>
                 <div><strong>Steam HEX:</strong> <code>{evalTargetMember.steam_hex}</code></div>
-                <div style={{ gridColumn: 'span 2', marginTop: '0.5rem' }}>
+                <div className="span-2">
                   <strong>Total Nilai Saat Ini:</strong>{' '}
                   <span style={{ fontWeight: 'bold', color: (evalTargetMember.probatus_score ?? 0) >= 0 ? 'var(--color-success)' : 'var(--color-error)' }}>
                     {evalTargetMember.probatus_score ?? 0}
@@ -341,25 +335,15 @@ export default function NilaiProbatusPage() {
               <textarea
                 id="eval-reason"
                 required
+                className="form-input"
                 rows={3}
                 value={evalReason}
                 onChange={(e) => setEvalReason(e.target.value)}
                 placeholder="Tulis alasan atau rincian kegiatan penilaian..."
-                style={{
-                  width: '100%',
-                  padding: '0.6rem 0.8rem',
-                  background: 'rgba(5, 7, 13, 0.6)',
-                  border: '1px solid var(--color-border-custom)',
-                  borderRadius: '6px',
-                  color: 'var(--color-text-primary)',
-                  fontSize: '0.85rem',
-                  outline: 'none',
-                  resize: 'vertical'
-                }}
               />
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1.5rem' }}>
+            <div className="form-actions">
               <button type="button" className="btn btn-secondary" onClick={() => setIsEvalModalOpen(false)}>Batal</button>
               <button 
                 type="submit" 
@@ -381,16 +365,16 @@ export default function NilaiProbatusPage() {
       >
         <div style={{ minHeight: '200px' }}>
           {isLoadingHistory ? (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '200px', gap: '1rem' }}>
+            <div className="loading-container" style={{ minHeight: '200px' }}>
               <div className="loading-spinner" />
-              <p style={{ color: 'var(--color-text-muted)', fontSize: '0.85rem' }}>Memuat riwayat...</p>
+              <p>Memuat riwayat...</p>
             </div>
           ) : historyLogs.length === 0 ? (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '200px', color: 'var(--color-text-muted)', fontSize: '0.85rem' }}>
+            <div className="history-empty">
               Belum ada riwayat penilaian untuk anggota ini.
             </div>
           ) : (
-            <div className="table-responsive" style={{ maxHeight: '400px', overflowY: 'auto' }}>
+            <div className="history-table-wrapper">
               <table className="roster-table" style={{ width: '100%', fontSize: '0.8rem' }}>
                 <thead>
                   <tr>

@@ -67,19 +67,19 @@ export default function Navbar() {
               <Link href="/admin" className={`nav-link ${pathname.startsWith('/admin') ? 'active' : ''}`} onClick={() => setMobileOpen(false)}>
                 <LayoutDashboard size={14} /> Dashboard
               </Link>
-              <button className="nav-link" onClick={handleLogout} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-secondary)' }}>
+              <button className="nav-link nav-link-logout" onClick={handleLogout} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-secondary)' }}>
                 Keluar <LogOut size={14} />
               </button>
             </>
           )}
         </nav>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <div className="nav-status-badge">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <div className={`nav-status-badge ${isClosed ? 'closed' : ''}`}>
             <span className={dotClass}></span>
             <span className="status-text">{statusText}</span>
           </div>
-          <button className="mobile-menu-btn" onClick={() => setMobileOpen(!mobileOpen)}>
+          <button className="mobile-menu-btn" onClick={() => setMobileOpen(!mobileOpen)} aria-label="Toggle menu">
             <Menu />
           </button>
         </div>

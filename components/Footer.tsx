@@ -2,24 +2,24 @@ import Image from 'next/image';
 
 export default function Footer() {
   return (
-    <footer className="footer" style={{ marginTop: 'auto' }}>
+    <footer className="footer">
       <div className="footer-container">
         <div className="footer-left">
           <Image
             src="/logo.png"
             alt="Roxwood Sheriff Logo"
-            width={50}
-            height={50}
+            width={44}
+            height={44}
             style={{ objectFit: 'contain', filter: 'drop-shadow(0 0 5px rgba(212, 175, 55, 0.25))' }}
           />
           <div>
             <h4>Sheriff Kerajaan Roxwood</h4>
-            <p>Departemen Hukum Kerajaan Roxwood - Indopride</p>
+            <p>Departemen Hukum Kerajaan Roxwood &mdash; Indopride</p>
           </div>
         </div>
         
         <div className="footer-center">
-          <p style={{ margin: 0, color: 'var(--color-text-muted)', fontSize: '0.75rem', fontFamily: 'var(--font-header)', fontWeight: 600, letterSpacing: '1.5px', opacity: 0.6 }}>
+          <p className="footer-credit-text">
             direct by Cimolbojot
           </p>
         </div>
@@ -31,7 +31,7 @@ export default function Footer() {
             </svg>
             <span>probatus sheriff</span>
           </a>
-          <p>&copy; 2026 Sheriff Kerajaan Roxwood.</p>
+          <p>&copy; {new Date().getFullYear()} Sheriff Kerajaan Roxwood.</p>
         </div>
       </div>
     </footer>

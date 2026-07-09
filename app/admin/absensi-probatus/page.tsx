@@ -1,8 +1,9 @@
-'use client';
+﻿'use client';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/components/Toast';
 import { Search, Inbox, Calendar } from 'lucide-react';
+import { logActivity } from '@/lib/activity-log';
 
 export default function AbsensiProbatusPage() {
   const { showToast } = useToast();
@@ -12,6 +13,7 @@ export default function AbsensiProbatusPage() {
 
   // States untuk Absensi
   const [evaluatorName, setEvaluatorName] = useState('');
+  const [currentUserRole, setCurrentUserRole] = useState<string>('pelatih');
   
   // Tanggal Mulai Pelatihan (default: 13 hari sebelum hari ini agar hari ini jadi kolom terakhir)
   const getInitialStartDate = () => {
@@ -23,6 +25,8 @@ export default function AbsensiProbatusPage() {
   };
 
   const [startDate, setStartDate] = useState(getInitialStartDate());
+  const [pendingDate, setPendingDate] = useState<string | null>(null);
+  const [showDateConfirm, setShowDateConfirm] = useState(false);
   const [attendanceMatrix, setAttendanceMatrix] = useState<Record<string, Record<string, string>>>({});
 
   // Helper untuk generate 14 tanggal berurutan
@@ -40,6 +44,15 @@ export default function AbsensiProbatusPage() {
   const datesList = getDatesArray(startDate);
 
   useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        const name = session.user.user_metadata?.username || session.user.email?.split('@')[0] || 'Admin';
+        setEvaluatorName(name);
+        const role = session.user.user_metadata?.role || 'dismag';
+        const normalizedRole = role === 'admin' ? 'dismag' : (role === 'trainer' ? 'pelatih' : role);
+        setCurrentUserRole(normalizedRole);
+      }
+    });
     loadTrainees();
   }, []);
 
@@ -97,10 +110,9 @@ export default function AbsensiProbatusPage() {
   }
 
   const handleSaveAttendance = async (memberId: string, dateStr: string, status: string) => {
-    if (!evaluatorName.trim()) {
-      showToast('Nama Pelatih wajib diisi di bagian atas untuk mencatat absensi.', 'error');
-      return;
-    }
+    const recorderName = evaluatorName.trim() || 'Admin';
+    const member = roster.find(m => m.id === memberId);
+    const memberName = member ? member.ic_name : 'Unknown';
 
     try {
       if (!status) {
@@ -119,6 +131,7 @@ export default function AbsensiProbatusPage() {
           }
           return next;
         });
+        logActivity(`Menghapus absensi Probatus <strong>${memberName}</strong> pada tanggal ${dateStr}`);
         showToast('Absensi berhasil dihapus.', 'success');
       } else {
         // Upsert record absensi
@@ -128,7 +141,7 @@ export default function AbsensiProbatusPage() {
             application_id: memberId,
             attendance_date: dateStr,
             status: status,
-            recorded_by: evaluatorName.trim()
+            recorded_by: recorderName
           }, {
             onConflict: 'application_id,attendance_date'
           });
@@ -140,6 +153,7 @@ export default function AbsensiProbatusPage() {
           next[memberId][dateStr] = status;
           return next;
         });
+        logActivity(`Mencatat absensi Probatus <strong>${memberName}</strong> pada tanggal ${dateStr} sebagai <strong>${status}</strong>`);
         showToast(`Absensi dicatat: ${status}`, 'success');
       }
     } catch (err: any) {
@@ -147,50 +161,14 @@ export default function AbsensiProbatusPage() {
     }
   };
 
-  const getSelectStyle = (value: string) => {
-    let bg = 'rgba(15, 23, 42, 0.4)';
-    let color = 'var(--color-text-secondary)';
-    let border = '1px solid var(--color-border-custom)';
-    
-    if (value === 'HADIR') {
-      bg = 'rgba(16, 185, 129, 0.2)';
-      color = '#10b981';
-      border = '1px solid rgba(16, 185, 129, 0.4)';
-    } else if (value === 'TIDAK SAMPAI SELESAI') {
-      bg = 'rgba(245, 158, 11, 0.2)';
-      color = '#f59e0b';
-      border = '1px solid rgba(245, 158, 11, 0.4)';
-    } else if (value === 'TERLAMBAT') {
-      bg = 'rgba(239, 68, 68, 0.2)';
-      color = '#ef4444';
-      border = '1px solid rgba(239, 68, 68, 0.4)';
-    } else if (value === 'IZIN') {
-      bg = 'rgba(251, 191, 36, 0.2)';
-      color = '#fbbf24';
-      border = '1px solid rgba(251, 191, 36, 0.4)';
-    } else if (value === 'TIDAK HADIR') {
-      bg = 'rgba(220, 38, 38, 0.35)';
-      color = '#f87171';
-      border = '1px solid rgba(220, 38, 38, 0.5)';
-    } else if (value === 'NGEJAR MATERI') {
-      bg = 'rgba(156, 163, 175, 0.2)';
-      color = '#9ca3af';
-      border = '1px solid rgba(156, 163, 175, 0.4)';
-    }
-    
-    return {
-      background: bg,
-      color: color,
-      border: border,
-      padding: '0.25rem 0.2rem',
-      borderRadius: '4px',
-      fontSize: '0.65rem',
-      fontWeight: value ? 'bold' : ('normal' as any),
-      outline: 'none',
-      cursor: 'pointer',
-      width: '100px',
-      textAlign: 'center' as const
-    };
+  const getSelectClass = (value: string) => {
+    if (value === 'HADIR') return 'attendance-select hadir';
+    if (value === 'IZIN') return 'attendance-select izin';
+    if (value === 'TIDAK HADIR') return 'attendance-select tidak-hadir';
+    if (value === 'TIDAK SAMPAI SELESAI') return 'attendance-select tidak-selesai';
+    if (value === 'TERLAMBAT') return 'attendance-select terlambat';
+    if (value === 'NGEJAR MATERI') return 'attendance-select ngejar-materi';
+    return 'attendance-select';
   };
 
   const calculateTotalSalary = (memberId: string) => {
@@ -224,79 +202,103 @@ export default function AbsensiProbatusPage() {
     member.ic_name?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+
+
   return (
-    <div style={{ maxWidth: '100%', overflowX: 'hidden' }}>
-      <div className="header-action-row" style={{ display: 'flex', flexWrap: 'wrap', gap: '1.5rem', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
-        <h2 className="dashboard-title" style={{ margin: 0 }}>
+    <div className="page-container">
+      <div className="header-action-row">
+        <h2 className="dashboard-title">
           Absensi Probatus (14 Hari)
-          <span style={{ marginLeft: '0.75rem', fontSize: '0.8rem', background: 'var(--color-bg-card)', padding: '0.2rem 0.6rem', borderRadius: '12px', border: '1px solid var(--color-border-custom)', color: 'var(--color-text-secondary)' }}>
+          <span className="count-badge">
             {isLoading ? '...' : `${roster.length} Siswa`}
           </span>
         </h2>
 
-        <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
-          <div className="form-group" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <label htmlFor="top-evaluator-name" style={{ margin: 0, fontSize: '0.85rem', whiteSpace: 'nowrap', fontWeight: 600 }}>Nama Pelatih:</label>
-            <input
-              type="text"
-              id="top-evaluator-name"
-              value={evaluatorName}
-              onChange={(e) => setEvaluatorName(e.target.value)}
-              placeholder="Input Nama Pelatih (Wajib)"
-              style={{
-                padding: '0.4rem 0.6rem',
-                fontSize: '0.85rem',
-                width: '180px',
-                background: 'rgba(5, 7, 13, 0.6)',
-                border: '1px solid var(--color-border-custom)',
-                borderRadius: '6px',
-                color: 'var(--color-text-primary)',
-                outline: 'none'
-              }}
-            />
-          </div>
-
-          <div className="form-group" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <label htmlFor="start-date-picker" style={{ margin: 0, fontSize: '0.85rem', whiteSpace: 'nowrap', fontWeight: 600 }}>Tanggal Mulai:</label>
+        <div className="filter-actions">
+          <div className="form-group attendance-date-group">
+            <label htmlFor="start-date-picker">Tanggal Mulai:</label>
             <input
               type="date"
               id="start-date-picker"
+              className={`attendance-date-input ${currentUserRole === 'pelatih' ? 'restricted' : ''}`}
               value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              style={{
-                padding: '0.4rem 0.6rem',
-                fontSize: '0.85rem',
-                background: 'rgba(5, 7, 13, 0.6)',
-                border: '1px solid var(--color-border-custom)',
-                borderRadius: '6px',
-                color: 'var(--color-text-primary)',
-                outline: 'none',
-                cursor: 'pointer'
+              onChange={(e) => {
+                const newDate = e.target.value;
+                if (currentUserRole === 'pelatih') {
+                  showToast('Hanya Dismag & Superadmin yang dapat mengubah tanggal mulai.', 'error');
+                  return;
+                }
+                setPendingDate(newDate);
+                setShowDateConfirm(true);
               }}
             />
+            {currentUserRole === 'pelatih' && (
+              <span className="date-restricted-note">Hanya Dismag</span>
+            )}
           </div>
+
+          {showDateConfirm && (
+            <div className="modal-overlay">
+              <div className="glass-card modal-question-box">
+                <h3 className="modal-question-title">
+                  ⚠️ Konfirmasi Ubah Tanggal
+                </h3>
+                <p className="modal-question-desc">
+                  Anda akan mengubah tanggal mulai absensi menjadi:
+                </p>
+                <p className="modal-question-date">
+                  {pendingDate ? new Date(pendingDate + 'T00:00:00').toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : ''}
+                </p>
+                <p className="modal-question-warning">
+                  Data absensi yang sudah tercatat sebelumnya <strong>tidak akan hilang</strong>, namun tampilan akan berubah.
+                </p>
+                <div className="modal-actions">
+                  <button
+                    className="btn btn-sm btn-secondary"
+                    onClick={() => {
+                      setShowDateConfirm(false);
+                      setPendingDate(null);
+                    }}
+                  >
+                    Batal
+                  </button>
+                  <button
+                    className="btn btn-sm btn-primary btn-confirm-gold"
+                    onClick={() => {
+                      if (pendingDate) {
+                        setStartDate(pendingDate);
+                      }
+                      setShowDateConfirm(false);
+                      setPendingDate(null);
+                    }}
+                  >
+                    Ya, Ubah Tanggal
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
-      <div className="search-input-wrapper" style={{ maxWidth: 400, marginBottom: '1.5rem' }}>
-        <Search size={16} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)' }} />
+      <div className="search-input-wrapper" style={{ maxWidth: 400 }}>
+        <Search size={16} className="search-icon" />
         <input
           type="text"
           placeholder="Cari berdasarkan nama karakter..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          style={{ paddingLeft: '2.25rem' }}
         />
       </div>
 
       {isLoading ? (
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '300px', gap: '1rem' }}>
+        <div className="loading-container">
           <div className="loading-spinner" />
-          <p style={{ color: 'var(--color-text-muted)', fontSize: '0.85rem' }}>Memuat data absensi...</p>
+          <p>Memuat data absensi...</p>
         </div>
       ) : filtered.length === 0 ? (
-        <div className="empty-state">
-          <Inbox />
+        <div className="empty-section">
+          <Inbox size={48} />
           <h3>Tidak Ada Siswa Pelatihan</h3>
           <p>
             {roster.length === 0
@@ -305,49 +307,22 @@ export default function AbsensiProbatusPage() {
           </p>
         </div>
       ) : (
-        <div className="table-responsive" style={{ overflowX: 'auto', border: '1px solid var(--color-border-custom)', borderRadius: '8px', background: 'var(--color-bg-card)' }}>
-          <table className="roster-table" style={{ borderCollapse: 'collapse', width: '100%', minWidth: '1600px' }}>
+        <div className="table-wrapper">
+          <table className="roster-table">
             <thead>
-              {/* Baris Keterangan Minggu */}
-              <tr style={{ background: 'rgba(15, 23, 42, 0.95)' }}>
-                <th style={{ padding: '0.4rem 1rem', position: 'sticky', left: 0, zIndex: 10, background: '#0e1320', borderRight: '2px solid var(--color-border-custom)' }} />
-                <th
-                  colSpan={7}
-                  style={{
-                    padding: '0.4rem 0.5rem',
-                    textAlign: 'center',
-                    fontSize: '0.7rem',
-                    fontWeight: 700,
-                    letterSpacing: '2px',
-                    background: 'rgba(59, 130, 246, 0.15)',
-                    color: '#60a5fa',
-                    borderBottom: '2px solid rgba(59, 130, 246, 0.35)',
-                    borderRight: '2px solid rgba(59, 130, 246, 0.35)'
-                  }}
-                >
-                  MINGGU 1 — PEMBUKAAN
+              <tr className="probatus-week-row">
+                <th className="probatus-week-corner" />
+                <th colSpan={7} className="probatus-week-header minggu1">
+                  MINGGU 1 - PEMBUKAAN
                 </th>
-                <th
-                  colSpan={7}
-                  style={{
-                    padding: '0.4rem 0.5rem',
-                    textAlign: 'center',
-                    fontSize: '0.7rem',
-                    fontWeight: 700,
-                    letterSpacing: '2px',
-                    background: 'rgba(251, 191, 36, 0.12)',
-                    color: '#fbbf24',
-                    borderBottom: '2px solid rgba(251, 191, 36, 0.35)',
-                    borderRight: '2px solid rgba(251, 191, 36, 0.25)'
-                  }}
-                >
-                  MINGGU 2 — PELATIHAN
+                <th colSpan={7} className="probatus-week-header minggu2">
+                  MINGGU 2 - PELATIHAN
                 </th>
-                <th style={{ background: 'rgba(21, 128, 61, 0.1)' }} />
+                <th className="probatus-week-total" />
               </tr>
-              <tr style={{ background: 'rgba(15, 23, 42, 0.8)', borderBottom: '2px solid var(--color-border-custom)' }}>
-                <th style={{ padding: '0.75rem 1rem', textAlign: 'left', minWidth: '200px', position: 'sticky', left: 0, zIndex: 10, background: '#0e1320', borderRight: '2px solid var(--color-border-custom)' }}>
-                  NAMA ANGOTA (IC)
+              <tr>
+                <th className="attendance-header-cell name-col">
+                  NAMA ANGGOTA (IC)
                 </th>
                 {datesList.map((date, idx) => {
                   const isWeek1 = idx < 7;
@@ -355,31 +330,24 @@ export default function AbsensiProbatusPage() {
                   return (
                     <th
                       key={idx}
-                      style={{
-                        padding: '0.75rem 0.5rem',
-                        textAlign: 'center',
-                        minWidth: '110px',
-                        fontSize: '0.75rem',
-                        letterSpacing: '0.5px',
-                        background: isWeek1 ? 'rgba(59, 130, 246, 0.08)' : 'rgba(251, 191, 36, 0.06)',
-                        color: isWeek1 ? '#93c5fd' : '#fcd34d',
-                        borderRight: idx === 6 ? '2px solid rgba(251, 191, 36, 0.35)' : undefined
-                      }}
+                      className={`attendance-header-cell date-col ${isWeek1 ? 'pelatih-bg' : 'pengawas-bg'} ${idx === 6 ? 'week-divider' : ''}`}
                     >
-                      {dayName}
-                      <div style={{ fontSize: '0.65rem', color: isWeek1 ? 'rgba(147,197,253,0.6)' : 'rgba(252,211,77,0.6)', marginTop: '2px', fontWeight: 'normal' }}>ABSEN</div>
+                      <span className="attendance-header-sub">
+                        {dayName}
+                        <span className="attendance-header-sub-text">ABSEN</span>
+                      </span>
                     </th>
                   );
                 })}
-                <th style={{ padding: '0.75rem 1rem', textAlign: 'center', minWidth: '80px', background: 'rgba(21, 128, 61, 0.1)', color: '#10b981', fontWeight: 'bold' }}>
+                <th className="attendance-header-cell hadir-col">
                   TOTAL
                 </th>
               </tr>
             </thead>
             <tbody>
               {filtered.map((member) => (
-                <tr key={member.id} style={{ borderBottom: '1px solid var(--color-border-custom)', transition: 'background-color 0.2s' }}>
-                  <td style={{ padding: '0.75rem 1rem', fontWeight: 'bold', fontSize: '0.85rem', position: 'sticky', left: 0, zIndex: 9, background: '#0e1320', borderRight: '2px solid var(--color-border-custom)' }}>
+                <tr key={member.id}>
+                  <td className="member-name-cell-staff">
                     {member.ic_name}
                   </td>
                   {datesList.map((date, idx) => {
@@ -387,56 +355,35 @@ export default function AbsensiProbatusPage() {
                     const val = (attendanceMatrix[member.id] || {})[dateStr] || '';
                     const isWeek1 = idx < 7;
                     return (
-                      <td key={idx} style={{ padding: '0.4rem 0.35rem', textAlign: 'center', background: isWeek1 ? 'rgba(59, 130, 246, 0.04)' : 'rgba(251, 191, 36, 0.03)', borderRight: idx === 6 ? '2px solid rgba(251, 191, 36, 0.25)' : undefined }}>
+                      <td key={idx} className={`attendance-data-cell ${isWeek1 ? 'week1-bg' : 'week2-bg'} ${idx === 6 ? 'week-divider' : ''}`}>
                         <select
                           value={val}
                           onChange={(e) => handleSaveAttendance(member.id, dateStr, e.target.value)}
-                          style={getSelectStyle(val) as any}
+                          className={getSelectClass(val)}
                         >
-                          <option value="" style={{ background: '#0e1320', color: 'var(--color-text-secondary)' }}>-</option>
-                          <option value="HADIR" style={{ background: '#0e1320', color: '#10b981' }}>HADIR</option>
-                          <option value="TIDAK SAMPAI SELESAI" style={{ background: '#0e1320', color: '#f59e0b' }}>TIDAK SAMPAI SELESAI</option>
-                          <option value="TERLAMBAT" style={{ background: '#0e1320', color: '#ef4444' }}>TERLAMBAT</option>
-                          <option value="IZIN" style={{ background: '#0e1320', color: '#fbbf24' }}>IZIN</option>
-                          <option value="TIDAK HADIR" style={{ background: '#0e1320', color: '#f87171' }}>TIDAK HADIR</option>
-                          <option value="NGEJAR MATERI" style={{ background: '#0e1320', color: '#9ca3af' }}>NGEJAR MATERI</option>
+                          <option value="">-</option>
+                          <option value="HADIR">HADIR</option>
+                          <option value="TIDAK SAMPAI SELESAI">TIDAK SAMPAI SELESAI</option>
+                          <option value="TERLAMBAT">TERLAMBAT</option>
+                          <option value="IZIN">IZIN</option>
+                          <option value="TIDAK HADIR">TIDAK HADIR</option>
+                          <option value="NGEJAR MATERI">NGEJAR MATERI</option>
                         </select>
                       </td>
                     );
                   })}
-                  <td style={{ padding: '0.75rem 1rem', textAlign: 'center', fontWeight: 'bold', fontSize: '0.85rem', background: 'rgba(21, 128, 61, 0.05)', color: '#10b981' }}>
+                  <td className="attendance-gaji-value">
                     {formatRupiah(calculateTotalSalary(member.id))}
                   </td>
                 </tr>
               ))}
             </tbody>
             <tfoot>
-              <tr style={{ borderTop: '2px solid var(--color-border-custom)' }}>
-                <td 
-                  colSpan={15}
-                  style={{ 
-                    padding: '0.75rem 1rem', 
-                    textAlign: 'center', 
-                    fontWeight: 800, 
-                    fontSize: '0.9rem', 
-                    letterSpacing: '3px',
-                    background: '#851c1c',
-                    color: '#ffffff',
-                  }}
-                >
+              <tr className="attendance-total-row">
+                <td colSpan={15} className="probatus-grand-total-label">
                   TOTAL
                 </td>
-                <td 
-                  style={{ 
-                    padding: '0.75rem 1rem', 
-                    textAlign: 'center', 
-                    fontWeight: 'bold', 
-                    fontSize: '0.9rem', 
-                    background: '#15803d',
-                    color: '#ffffff',
-                    whiteSpace: 'nowrap'
-                  }}
-                >
+                <td className="probatus-grand-total-value">
                   {formatRupiah(calculateGrandTotalSalary())}
                 </td>
               </tr>
@@ -447,3 +394,4 @@ export default function AbsensiProbatusPage() {
     </div>
   );
 }
+

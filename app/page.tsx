@@ -11,49 +11,36 @@ export default function HomePage() {
   };
 
   return (
-    <div style={{ position: 'relative' }}>
+    <div className="home-root">
       <div className="glow-bg glow-1"></div>
       <div className="glow-bg glow-2"></div>
 
       <div className="section-container">
         {/* HERO */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '3rem', flexWrap: 'wrap', marginTop: '1rem' }}>
-          <div style={{ flex: '1 1 400px' }}>
-            <h2 style={{
-              fontFamily: 'var(--font-header)',
-              fontSize: '0.85rem',
-              fontWeight: 700,
-              color: 'var(--color-gold)',
-              letterSpacing: '2px',
-              marginBottom: '0.75rem',
-            }}>SHERIFF KERAJAAN ROXWOOD</h2>
-            <h1 style={{
-              fontFamily: 'var(--font-header)',
-              fontSize: '3rem',
-              fontWeight: 800,
-              lineHeight: 1.1,
-              marginBottom: '1rem',
-            }}>TO PROTECT<br/>AND TO SERVE</h1>
-            <p style={{ color: 'var(--color-text-secondary)', maxWidth: '550px', lineHeight: 1.7 }}>
+        <div className="hero-container">
+          <div className="hero-text-col">
+            <h2 className="hero-badge">SHERIFF KERAJAAN ROXWOOD</h2>
+            <h1 className="hero-title">TO PROTECT<br/>AND TO SERVE</h1>
+            <p className="hero-desc">
               Sheriff Kerajaan Roxwood adalah lembaga penegak hukum yang berperan menjaga keamanan, ketertiban, dan kedamaian masyarakat. Selain menegakkan hukum, lembaga ini menjadi pilar stabilitas sosial yang adaptif terhadap dinamika serta perubahan di Pulau Roxwood, demi menciptakan lingkungan yang harmonis dan berkelanjutan.
             </p>
           </div>
-          <div style={{ flex: '0 0 auto', display: 'flex', justifyContent: 'center' }}>
+          <div className="hero-logo-col">
             <Image
               src="/logo.png"
               alt="Roxwood Sheriff Logo"
               width={380}
               height={380}
-              style={{ objectFit: 'contain', animation: 'pulse-glow 3s infinite alternate' }}
+              className="hero-logo-img"
             />
           </div>
         </div>
 
         {/* VALUES */}
-        <div style={{ marginTop: '4rem' }}>
+        <div className="section-spacer">
           <h2 className="section-title">Nilai Utama Kami</h2>
           <p className="section-subtitle">Nilai-nilai dasar yang dipegang teguh oleh setiap deputi dalam bertugas.</p>
-          <div className="values-grid" style={{ marginTop: '1.5rem' }}>
+          <div className="values-grid">
             <ValueCard icon={<ShieldCheck size={22} />} title="Integritas" desc="Menjunjung tinggi kejujuran, transparansi, dan kode etik moral dalam bertugas." />
             <ValueCard icon={<Swords size={22} />} title="Keberanian" desc="Siap menghadapi segala risiko bahaya demi melindungi warga Kerajaan Roxwood." />
             <ValueCard icon={<Award size={22} />} title="Disiplin" desc="Menjaga rantai komando, loyalitas faksi, dan dedikasi pelayanan berstandar tinggi." />
@@ -62,10 +49,10 @@ export default function HomePage() {
         </div>
 
         {/* DIVISIONS */}
-        <div style={{ marginTop: '4rem' }}>
+        <div className="section-spacer">
           <h2 className="section-title">Divisi Spesialis Kami</h2>
           <p className="section-subtitle">Peluang karir yang luas dengan berbagai spesialisasi taktis.</p>
-          <div className="divisions-grid" style={{ marginTop: '1.5rem' }}>
+          <div className="divisions-grid">
             <DivisionCard badge="LEGON" icon={<Scale size={14} />} items={['Menegakkan disiplin dalam tubuh Sheriff.', 'Menyelidiki pelanggaran etika, wewenang, dan kehormatan.', 'Menyusun laporan sidang disipliner dan vonis kehormatan.', 'Bertindak sebagai penjaga kemurnian tubuh Sheriff.']} />
             <DivisionCard badge="ARLION" icon={<Swords size={14} />} items={['Menangani huru-hara dan konflik bersenjata.', 'Intervensi penyanderaan besar, pengepungan, dan pengamanan tingkat tinggi.', 'Bertugas di zona peperangan atau daerah rawan.', 'Personel elit bersenjata berat dan bersertifikat taktis.']} />
             <DivisionCard badge="INREGIS" icon={<ShieldCheck size={14} />} items={['Menyelidiki kasus kriminal kelas tinggi (pembunuhan, makar, korupsi, dsb).', 'Penyamaran dan pengumpulan intelijen.', 'Pelacakan jejak konspirasi dan kejahatan politik.']} />
@@ -77,10 +64,10 @@ export default function HomePage() {
         </div>
 
         {/* TIMELINE + REQUIREMENTS */}
-        <div className="home-sections-grid" style={{ marginTop: '4rem' }}>
+        <div className="home-sections-grid section-spacer">
           <div>
-            <h2 className="section-title" style={{ textAlign: 'left' }}>Alur Penerimaan</h2>
-            <p className="section-subtitle" style={{ textAlign: 'left', margin: '0.5rem 0 2rem 0' }}>Tahapan seleksi penerimaan anggota Sheriff Roxwood.</p>
+            <h2 className="section-title section-title-left">Alur Penerimaan</h2>
+            <p className="section-subtitle section-subtitle-left">Tahapan seleksi penerimaan anggota Sheriff Roxwood.</p>
             <div className="timeline-steps">
               {[
                 ['Formulir Online', 'Mengisi seluruh data diri OOC dan IC, serta menjawab beberapa pertanyaan dan skenario yang telah disediakan dengan jujur.'],
@@ -99,8 +86,8 @@ export default function HomePage() {
             </div>
           </div>
           <div>
-            <h2 className="section-title" style={{ textAlign: 'left' }}>Persyaratan Umum</h2>
-            <p className="section-subtitle" style={{ textAlign: 'left', margin: '0.5rem 0 2rem 0' }}>Pastikan Anda memenuhi syarat di bawah ini sebelum mendaftar.</p>
+            <h2 className="section-title section-title-left">Persyaratan Umum</h2>
+            <p className="section-subtitle section-subtitle-left">Pastikan Anda memenuhi syarat di bawah ini sebelum mendaftar.</p>
             <div className="reqs-list">
               {[
                 'Berusia minimal 17 tahun (OOC) dan memiliki karakter berusia minimal 17 tahun (IC).',
@@ -110,7 +97,7 @@ export default function HomePage() {
                 'Memiliki sikap disiplin, sopan, dan siap menjalankan tugas sebagai Sheriff.',
               ].map((item, i) => (
                 <div key={i} className="req-item">
-                  <CheckSquare size={18} style={{ minWidth: 18, color: 'var(--color-gold)', marginTop: 2 }} />
+                  <CheckSquare size={18} className="req-icon" />
                   <p>{item}</p>
                 </div>
               ))}
@@ -119,14 +106,14 @@ export default function HomePage() {
         </div>
 
         {/* CTA */}
-        <div id="cta" className="glass-card" style={{ marginTop: '4rem', textAlign: 'center', padding: '3rem 2rem' }}>
-          <h2 style={{ fontFamily: 'var(--font-header)', fontSize: '2.2rem', color: 'var(--color-gold)', textTransform: 'uppercase', marginBottom: '1rem', letterSpacing: 1 }}>
+        <div id="cta" className="glass-card cta-card">
+          <h2 className="cta-title">
             Siap Mengabdi untuk Kerajaan?
           </h2>
-          <p style={{ color: 'var(--color-text-secondary)', maxWidth: 600, margin: '0 auto 2rem', lineHeight: 1.6 }}>
+          <p className="cta-desc">
             Lindungi warga, tegakkan hukum, dan buktikan dedikasimu dalam menjaga keamanan Kerajaan Roxwood.
           </p>
-          <button className="btn btn-primary" style={{ fontSize: '1rem', padding: '0.75rem 2rem' }} onClick={handleApplyClick}>
+          <button className="btn btn-primary cta-btn" onClick={handleApplyClick}>
             Gabung Sekarang <ArrowRight size={18} />
           </button>
         </div>

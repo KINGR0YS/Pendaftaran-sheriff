@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase';
 import Image from 'next/image';
 import {
   BarChart2, ClipboardList, ClipboardX, UsersRound,
-  Settings, Award, Calendar, LogOut, Shield, UserCog
+  Settings, Award, Calendar, LogOut, Shield, UserCog, History
 } from 'lucide-react';
 
 const adminItems = [
@@ -79,6 +79,8 @@ export default function Sidebar() {
     roleBorder = 'rgba(239,68,68,0.3)';
   }
 
+  const isDismagOrSuperAdmin = role === 'dismag' || role === 'superadmin';
+
   const groups: SidebarGroup[] = [
     { label: 'ADMIN PANEL', items: adminItems },
     { label: 'TRAINING', items: trainingItems },
@@ -86,6 +88,7 @@ export default function Sidebar() {
       label: 'SISTEM', 
       items: [
         ...settingsItems,
+        ...(isDismagOrSuperAdmin ? [{ href: '/admin/logs', label: 'Log Aktivitas', icon: <History size={16} /> }] : []),
         ...(isSuperAdmin ? [{ href: '/admin/manage-accounts', label: 'Manajemen Akun', icon: <UserCog size={16} /> }] : [])
       ] 
     },

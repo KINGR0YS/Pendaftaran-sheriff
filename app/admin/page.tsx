@@ -45,9 +45,23 @@ export default function AdminStatsPage() {
         .eq('status', 'approved');
       setRosterCount(roster || 0);
 
-      // Load activity logs from localStorage
-      const logs = JSON.parse(localStorage.getItem('activity_logs') || '[]');
-      setActivityLogs(logs.slice(0, 10));
+      // Load activity logs from database
+      const { data: dbLogs, error: logsError } = await supabase
+        .from('activity_logs')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      if (!logsError && dbLogs) {
+        setActivityLogs(dbLogs.map(log => ({
+          time: log.created_at,
+          text: log.action.includes('(') ? log.action : `<strong>${log.username}</strong> (${log.role.toUpperCase()}): ${log.action}`
+        })));
+      } else {
+        // Fallback to localStorage
+        const logs = JSON.parse(localStorage.getItem('activity_logs') || '[]');
+        setActivityLogs(logs.slice(0, 10));
+      }
     } catch (e) {
       console.error(e);
     } finally {

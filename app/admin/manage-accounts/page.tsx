@@ -5,10 +5,12 @@ import { supabase } from '@/lib/supabase';
 import { useToast } from '@/components/Toast';
 import RoleGuard from '@/components/RoleGuard';
 import Modal from '@/components/Modal';
+import { logActivity } from '@/lib/activity-log';
 import { 
   listUsers, 
   forceResetPassword, 
-  deleteUser 
+  deleteUser,
+  updateUserStatus
 } from './actions';
 import { 
   KeyRound, 
@@ -19,7 +21,9 @@ import {
   ShieldAlert,
   Loader2,
   Shield,
-  UserCheck
+  UserCheck,
+  UserX,
+  Power
 } from 'lucide-react';
 
 interface AccountUser {
@@ -27,6 +31,7 @@ interface AccountUser {
   email: string;
   username: string;
   role: string;
+  status?: 'active' | 'inactive';
   created_at: string;
   last_sign_in_at?: string;
 }
@@ -95,6 +100,7 @@ export default function ManageAccountsPage() {
     const res = await forceResetPassword(accessToken, selectedUser.id, newPassword);
     if (res.success) {
       showToast(res.message || 'Password berhasil diubah.', 'success');
+      logActivity(`Mereset password akun <strong>${selectedUser.username}</strong> (${selectedUser.email})`);
       setIsResetModalOpen(false);
     } else {
       showToast(res.message || 'Gagal mengubah password.', 'error');
@@ -116,9 +122,35 @@ export default function ManageAccountsPage() {
     const res = await deleteUser(accessToken, targetUser.id);
     if (res.success) {
       showToast(res.message || 'Akun berhasil dihapus.', 'success');
+      logActivity(`Menghapus akun <strong>${targetUser.username}</strong> (${targetUser.email}) secara permanen`);
       fetchUsers(accessToken);
     } else {
       showToast(res.message || 'Gagal menghapus akun.', 'error');
+      setLoading(false);
+    }
+  };
+
+  const handleToggleStatus = async (targetUser: AccountUser) => {
+    if (currentUser?.id === targetUser.id) {
+      showToast('Anda tidak dapat mengubah status akun Anda sendiri.', 'error');
+      return;
+    }
+
+    const newStatus = targetUser.status === 'inactive' ? 'active' : 'inactive';
+    const statusLabel = newStatus === 'active' ? 'MENGAKTIFKAN' : 'MENONAKTIFKAN';
+
+    if (!confirm(`Apakah Anda yakin ingin ${statusLabel} akun ${targetUser.username} (${targetUser.email})?`)) {
+      return;
+    }
+
+    setLoading(true);
+    const res = await updateUserStatus(accessToken, targetUser.id, newStatus);
+    if (res.success) {
+      showToast(res.message || 'Status akun berhasil diperbarui.', 'success');
+      logActivity(`Mengubah status akun <strong>${targetUser.username}</strong> (${targetUser.email}) menjadi <strong>${newStatus === 'active' ? 'Aktif' : 'Nonaktif'}</strong>`);
+      fetchUsers(accessToken);
+    } else {
+      showToast(res.message || 'Gagal memperbarui status akun.', 'error');
       setLoading(false);
     }
   };
@@ -128,6 +160,96 @@ export default function ManageAccountsPage() {
     u.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
     u.role.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const superadmins = filteredUsers.filter(u => u.role === 'superadmin');
+  const dismags = filteredUsers.filter(u => u.role === 'dismag');
+  const pelatihs = filteredUsers.filter(u => u.role === 'pelatih');
+  const others = filteredUsers.filter(u => u.role !== 'superadmin' && u.role !== 'dismag' && u.role !== 'pelatih');
+
+  const renderUserTable = (usersList: AccountUser[], roleTitle: string) => {
+    if (usersList.length === 0) {
+      return (
+        <div className="empty-section">
+          Tidak ada akun {roleTitle.toLowerCase()} yang ditemukan.
+        </div>
+      );
+    }
+
+    return (
+      <div className="table-wrapper" style={{ marginBottom: '2rem' }}>
+        <table className="roster-table">
+          <thead>
+            <tr>
+              <th style={{ textAlign: 'left' }}>Nama Pengguna</th>
+              <th style={{ textAlign: 'left' }}>Email Kantor</th>
+              <th style={{ textAlign: 'center', width: '120px' }}>Status</th>
+              <th style={{ textAlign: 'center', width: '180px' }}>Terdaftar</th>
+              <th style={{ textAlign: 'center', width: '200px' }}>Tindakan</th>
+            </tr>
+          </thead>
+          <tbody>
+            {usersList.map((u) => {
+              const isCurrent = currentUser?.id === u.id;
+              return (
+                <tr key={u.id}>
+                  <td className="account-user-cell">
+                    <div className="user-name-wrap">
+                      {u.username}
+                      {isCurrent && (
+                        <span className="you-badge">Anda</span>
+                      )}
+                    </div>
+                  </td>
+                  <td className="account-email-cell">{u.email}</td>
+                  <td style={{ textAlign: 'center' }}>
+                    <span className={`status-badge ${u.status === 'inactive' ? 'inactive' : 'active'}`}>
+                      {u.status === 'inactive' ? 'NONAKTIF' : 'AKTIF'}
+                    </span>
+                  </td>
+                  <td className="account-date-cell">
+                    {new Date(u.created_at).toLocaleDateString('id-ID', {
+                      day: 'numeric',
+                      month: 'short',
+                      year: 'numeric'
+                    })}
+                  </td>
+                  <td className="account-actions-cell">
+                    <div className="actions-wrap">
+                      <button
+                        onClick={() => handleToggleStatus(u)}
+                        title={u.status === 'inactive' ? 'Aktifkan Akun' : 'Nonaktifkan Akun'}
+                        disabled={isCurrent}
+                        className={`icon-btn ${u.status === 'inactive' ? 'toggle-active' : 'toggle-inactive'}`}
+                      >
+                        {u.status === 'inactive' ? <UserCheck size={15} /> : <UserX size={15} />}
+                      </button>
+
+                      <button
+                        onClick={() => handleOpenResetModal(u)}
+                        title="Reset Password Paksa"
+                        className="icon-btn reset-pw"
+                      >
+                        <KeyRound size={15} />
+                      </button>
+                      
+                      <button
+                        onClick={() => handleDeleteUser(u)}
+                        title="Hapus Akun Permanen"
+                        disabled={isCurrent}
+                        className="icon-btn delete-user"
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    );
+  };
 
   return (
     <RoleGuard allowedRoles={['superadmin']}>
@@ -177,111 +299,52 @@ export default function ManageAccountsPage() {
             <p>Tidak ditemukan akun yang cocok dengan pencarian Anda.</p>
           </div>
         ) : (
-          <div className="table-responsive" style={{ overflowX: 'auto', border: '1px solid var(--color-border-custom)', borderRadius: '8px', background: 'var(--color-bg-card)' }}>
-            <table className="roster-table" style={{ borderCollapse: 'collapse', width: '100%' }}>
-              <thead>
-                <tr style={{ background: 'rgba(15, 23, 42, 0.8)', borderBottom: '2px solid var(--color-border-custom)' }}>
-                  <th style={{ padding: '0.75rem 1rem', textAlign: 'left' }}>Nama Pengguna</th>
-                  <th style={{ padding: '0.75rem 1rem', textAlign: 'left' }}>Email Kantor</th>
-                  <th style={{ padding: '0.75rem 1rem', textAlign: 'center', width: '150px' }}>Hak Akses / Peran</th>
-                  <th style={{ padding: '0.75rem 1rem', textAlign: 'center', width: '180px' }}>Terdaftar</th>
-                  <th style={{ padding: '0.75rem 1rem', textAlign: 'center', width: '220px' }}>Tindakan</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredUsers.map((u) => {
-                  const isCurrent = currentUser?.id === u.id;
-                  const roleLabel = u.role.toUpperCase();
-                  
-                  let roleColor = '#cbd5e1';
-                  let roleBg = 'rgba(255,255,255,0.05)';
-                  let roleBorder = 'rgba(255,255,255,0.1)';
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', marginTop: '1.5rem' }}>
+            {/* Section Superadmin */}
+            <div>
+              <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#f87171', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem', letterSpacing: '0.5px' }}>
+                SUPERADMIN
+                <span style={{ fontSize: '0.7rem', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', padding: '0.1rem 0.5rem', borderRadius: '10px', color: '#f87171' }}>
+                  {superadmins.length}
+                </span>
+              </h3>
+              {renderUserTable(superadmins, 'Superadmin')}
+            </div>
 
-                  if (u.role === 'superadmin') {
-                    roleColor = '#f87171';
-                    roleBg = 'rgba(239, 68, 68, 0.08)';
-                    roleBorder = 'rgba(239, 68, 68, 0.2)';
-                  } else if (u.role === 'dismag') {
-                    roleColor = '#d4af37';
-                    roleBg = 'rgba(212, 175, 55, 0.08)';
-                    roleBorder = 'rgba(212, 175, 55, 0.2)';
-                  } else if (u.role === 'pelatih') {
-                    roleColor = '#60a5fa';
-                    roleBg = 'rgba(59, 130, 246, 0.08)';
-                    roleBorder = 'rgba(59, 130, 246, 0.2)';
-                  }
+            {/* Section Dismag */}
+            <div>
+              <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#d4af37', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem', letterSpacing: '0.5px' }}>
+                DISMAG
+                <span style={{ fontSize: '0.7rem', background: 'rgba(212, 175, 55, 0.1)', border: '1px solid rgba(212, 175, 55, 0.2)', padding: '0.1rem 0.5rem', borderRadius: '10px', color: '#d4af37' }}>
+                  {dismags.length}
+                </span>
+              </h3>
+              {renderUserTable(dismags, 'Dismag')}
+            </div>
 
-                  return (
-                    <tr key={u.id} style={{ borderBottom: '1px solid var(--color-border-custom)' }}>
-                      <td style={{ padding: '0.75rem 1rem', fontWeight: 'bold', fontSize: '0.85rem' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                          {u.username}
-                          {isCurrent && (
-                            <span style={{ 
-                              fontSize: '0.65rem', 
-                              background: 'rgba(16, 185, 129, 0.1)', 
-                              color: '#10b981', 
-                              padding: '0.1rem 0.4rem', 
-                              borderRadius: '4px',
-                              border: '1px solid rgba(16,185,129,0.2)' 
-                            }}>
-                              Anda
-                            </span>
-                          )}
-                        </div>
-                      </td>
-                      <td style={{ padding: '0.75rem 1rem', fontSize: '0.85rem' }}>{u.email}</td>
-                      <td style={{ padding: '0.75rem 1rem', textAlign: 'center' }}>
-                        <span style={{ 
-                          fontSize: '0.7rem', 
-                          fontWeight: 700, 
-                          color: roleColor, 
-                          background: roleBg, 
-                          border: `1px solid ${roleBorder}`, 
-                          padding: '0.2rem 0.6rem', 
-                          borderRadius: '20px',
-                          letterSpacing: '0.5px'
-                        }}>
-                          {roleLabel}
-                        </span>
-                      </td>
-                      <td style={{ padding: '0.75rem 1rem', textAlign: 'center', fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
-                        {new Date(u.created_at).toLocaleDateString('id-ID', {
-                          day: 'numeric',
-                          month: 'short',
-                          year: 'numeric'
-                        })}
-                      </td>
-                      <td style={{ padding: '0.4rem 1rem', textAlign: 'center' }}>
-                        <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
-                          <button
-                            onClick={() => handleOpenResetModal(u)}
-                            className="btn btn-sm btn-secondary"
-                            title="Reset Password Paksa"
-                            style={{ padding: '0.35rem 0.5rem' }}
-                          >
-                            <KeyRound size={13} style={{ marginRight: '3px' }} /> Reset PW
-                          </button>
-                          
-                          <button
-                            onClick={() => handleDeleteUser(u)}
-                            className="btn btn-sm btn-danger"
-                            title="Hapus Akun Permanen"
-                            disabled={isCurrent}
-                            style={{ 
-                              padding: '0.35rem 0.5rem',
-                              opacity: isCurrent ? 0.3 : 1 
-                            }}
-                          >
-                            <Trash2 size={13} style={{ marginRight: '3px' }} /> Hapus
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+            {/* Section Pelatih */}
+            <div>
+              <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#60a5fa', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem', letterSpacing: '0.5px' }}>
+                PELATIH
+                <span style={{ fontSize: '0.7rem', background: 'rgba(59, 130, 246, 0.1)', border: '1px solid rgba(59, 130, 246, 0.2)', padding: '0.1rem 0.5rem', borderRadius: '10px', color: '#60a5fa' }}>
+                  {pelatihs.length}
+                </span>
+              </h3>
+              {renderUserTable(pelatihs, 'Pelatih')}
+            </div>
+
+            {/* Section Lainnya (jika ada) */}
+            {others.length > 0 && (
+              <div>
+                <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#cbd5e1', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem', letterSpacing: '0.5px' }}>
+                  LAINNYA
+                  <span style={{ fontSize: '0.7rem', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255, 255, 255, 0.1)', padding: '0.1rem 0.5rem', borderRadius: '10px', color: '#cbd5e1' }}>
+                    {others.length}
+                  </span>
+                </h3>
+                {renderUserTable(others, 'Lainnya')}
+              </div>
+            )}
           </div>
         )}
 

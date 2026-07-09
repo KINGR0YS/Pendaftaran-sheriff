@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useToast } from '@/components/Toast';
 import { supabase } from '@/lib/supabase';
 import { Save, KeyRound, UserPlus } from 'lucide-react';
+import { logActivity } from '@/lib/activity-log';
 
 export default function SettingsPage() {
   const { showToast } = useToast();
@@ -37,6 +38,7 @@ export default function SettingsPage() {
   const handleSaveRecruitmentSettings = () => {
     localStorage.setItem('active_batch', activeBatch);
     localStorage.setItem('recruitment_status', recruitmentStatus);
+    logActivity(`Mengubah status pendaftaran menjadi ${recruitmentStatus} dan angkatan aktif menjadi ${activeBatch}`);
     showToast('Pengaturan rekrutmen & angkatan berhasil disimpan.', 'success');
   };
 
@@ -57,6 +59,7 @@ export default function SettingsPage() {
         current_password: currentPassword
       });
       if (error) throw error;
+      logActivity('Mengubah password akun');
       showToast('Password berhasil diubah!', 'success');
       setCurrentPassword('');
       setNewPassword('');
@@ -110,6 +113,7 @@ export default function SettingsPage() {
 
       if (error) throw error;
       
+      logActivity(`Membuat akun baru (${selectedRole}) untuk ${newUsername.trim()}`);
       showToast(`Akun baru (${selectedRole}) untuk ${newUsername} berhasil dibuat!`, 'success');
       setNewEmail('');
       setNewUsername('');
@@ -137,7 +141,7 @@ export default function SettingsPage() {
             Atur Status Pembukaan Pendaftaran Sheriff Kerajaan Roxwood.
           </p>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1rem' }}>
+          <div className="form-grid-2">
             <div className="form-group">
               <label htmlFor="config-recruitment-status">Status Rekrutmen</label>
               <select
@@ -173,7 +177,7 @@ export default function SettingsPage() {
       <div className="glass-card config-form-box" style={{ marginTop: '2rem' }}>
         <h3>RESET PASSWORD</h3>
         <p className="config-desc">
-          Perbarui kata sandi .
+          Perbarui kata sandi akun Anda.
         </p>
 
         <form onSubmit={handleChangePassword} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.5rem', alignItems: 'end' }}>
@@ -264,20 +268,10 @@ export default function SettingsPage() {
               <label htmlFor="selected-role">Hak Akses / Peran <span className="required">*</span></label>
               <select
                 id="selected-role"
+                className="form-input"
                 value={selectedRole}
                 onChange={(e) => setSelectedRole(e.target.value as any)}
                 required
-                style={{
-                  width: '100%',
-                  padding: '0.6rem 0.8rem',
-                  background: 'rgba(5, 7, 13, 0.6)',
-                  border: '1px solid var(--color-border-custom)',
-                  borderRadius: '6px',
-                  color: 'var(--color-text-primary)',
-                  fontSize: '0.85rem',
-                  outline: 'none',
-                  cursor: 'pointer'
-                }}
               >
                 <option value="pelatih">Pelatih (Hanya Nilai & Absensi)</option>
                 <option value="dismag">Full Akses (Dismag)</option>

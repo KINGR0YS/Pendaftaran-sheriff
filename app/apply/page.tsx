@@ -136,14 +136,14 @@ export default function ApplyPage() {
   };
 
   return (
-    <div style={{ position: 'relative', minHeight: 'calc(100vh - 70px)', padding: '2rem 1.5rem' }}>
+    <div className="apply-page-root">
       <div className="glow-bg glow-1"></div>
       <div className="glow-bg glow-2"></div>
 
-      <div className="glass-card" style={{ maxWidth: '800px', margin: '0 auto', padding: '2rem' }}>
-        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <h2 style={{ fontFamily: 'var(--font-header)', fontSize: '1.8rem', color: 'var(--color-gold)' }}>Formulir Pendaftaran Probatus</h2>
-          <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.9rem' }}>Lengkapi formulir dengan jujur. Semua informasi akan ditinjau oleh anggota DISMAG.</p>
+      <div className="glass-card apply-card">
+        <div className="apply-header">
+          <h2 className="apply-title">Formulir Pendaftaran Probatus</h2>
+          <p className="apply-subtitle">Lengkapi formulir dengan jujur. Semua informasi akan ditinjau oleh anggota DISMAG.</p>
 
           <div className="step-progress">
             <div className={`step-indicator ${step >= 1 ? 'active' : ''} ${step > 1 ? 'completed' : ''}`}>1 <span className="step-label">OOC</span></div>
@@ -157,7 +157,7 @@ export default function ApplyPage() {
         <form onSubmit={handleSubmit}>
           {step === 1 && (
             <div className="form-step active">
-              <h3 style={{ fontFamily: 'var(--font-header)', fontSize: '1.1rem', marginBottom: '1rem', color: 'var(--color-gold)' }}>Bagian 1: Informasi Out Of Character (Dunia Nyata)</h3>
+              <h3 className="step-heading">Bagian 1: Informasi Out Of Character (Dunia Nyata)</h3>
               <div className="form-grid">
                 <div className="form-group">
                   <label htmlFor="ooc_name">Nama Lengkap (OOC) <span className="required">*</span></label>
@@ -200,7 +200,7 @@ export default function ApplyPage() {
                   <input type="text" id="obligations_other_cities" value={formData.obligations_other_cities} onChange={handleChange} placeholder="Contoh: Tidak ada / Ada, menjadi anggota LSPD di server X" required />
                 </div>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1.5rem' }}>
+              <div className="form-actions-end">
                 <button type="button" className="btn btn-primary" onClick={nextStep}>
                   Selanjutnya <ChevronRight size={16} />
                 </button>
@@ -210,7 +210,7 @@ export default function ApplyPage() {
 
           {step === 2 && (
             <div className="form-step active">
-              <h3 style={{ fontFamily: 'var(--font-header)', fontSize: '1.1rem', marginBottom: '1rem', color: 'var(--color-gold)' }}>Bagian 2: Informasi In Character (Karakter Game)</h3>
+              <h3 className="step-heading">Bagian 2: Informasi In Character (Karakter Game)</h3>
               <div className="form-grid">
                 <div className="form-group">
                   <label htmlFor="ic_name">Nama Karakter (IC) <span className="required">*</span></label>
@@ -241,7 +241,7 @@ export default function ApplyPage() {
                   <textarea id="experience" value={formData.experience} onChange={handleChange} rows={3} placeholder="Contoh: Pernah menjadi Deputy Cadet di server X selama 1 bulan." required></textarea>
                 </div>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '1.5rem' }}>
+              <div className="form-actions-between">
                 <button type="button" className="btn btn-secondary" onClick={prevStep}>
                   <ChevronLeft size={16} /> Kembali
                 </button>
@@ -254,7 +254,7 @@ export default function ApplyPage() {
 
           {step === 3 && (
             <div className="form-step active">
-              <h3 style={{ fontFamily: 'var(--font-header)', fontSize: '1.1rem', marginBottom: '1rem', color: 'var(--color-gold)' }}>Bagian 3: Kualifikasi Personal</h3>
+              <h3 className="step-heading">Bagian 3: Kualifikasi Personal</h3>
               <div className="form-grid">
                 <div className="form-group full-width">
                   <label htmlFor="criminal_record">Pernahkah Anda terlibat kasus kriminal? <span className="required">*</span></label>
@@ -277,7 +277,7 @@ export default function ApplyPage() {
                   <input type="text" id="active_hours" value={formData.active_hours} onChange={handleChange} placeholder="Contoh: 19:00 - 23:00 WIB" required />
                 </div>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '1.5rem' }}>
+              <div className="form-actions-between">
                 <button type="button" className="btn btn-secondary" onClick={prevStep}>
                   <ChevronLeft size={16} /> Kembali
                 </button>
@@ -291,37 +291,35 @@ export default function ApplyPage() {
       </div>
 
       {showSuccessModal && (
-        <div className="modal open" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.7)', zIndex: 1000, padding: '1rem' }}>
-          <div className="modal-content glass-card success-notification-box" style={{ maxWidth: '500px', width: '100%', textAlign: 'center', padding: '2.5rem', border: '1px solid rgba(16, 185, 129, 0.2)', backgroundColor: 'var(--color-bg-card, #111)', borderRadius: '16px' }}>
-            <div className="success-notification-icon" style={{ fontSize: '3rem', color: 'var(--color-success)', marginBottom: '1.25rem' }}>
-              <CheckCircle2 style={{ width: '72px', height: '72px', margin: '0 auto', color: 'var(--color-success)' }} />
+        <div className="modal open success-modal-overlay">
+          <div className="modal-content glass-card success-notification-box success-modal-card">
+            <div className="success-icon-wrapper">
+              <CheckCircle2 className="success-icon" />
             </div>
-            <h3 style={{ fontSize: '1.6rem', marginBottom: '0.5rem', color: '#fff', fontWeight: 700, fontFamily: 'Outfit, sans-serif' }}>Pendaftaran Berhasil Dikirim!</h3>
-            <p style={{ color: 'var(--color-text-secondary, #aaa)', fontSize: '0.95rem', marginBottom: '2rem' }}>Terimakasih telah mendaftar untuk menjadi bagian dari Sheriff kerajaan roxwood.</p>
+            <h3 className="success-title">Pendaftaran Berhasil Dikirim!</h3>
+            <p className="success-message">Terimakasih telah mendaftar untuk menjadi bagian dari Sheriff kerajaan roxwood.</p>
 
-            {/* Discord Box */}
-            <div style={{ background: 'rgba(88, 101, 242, 0.08)', border: '1px solid rgba(88, 101, 242, 0.25)', padding: '1.5rem', borderRadius: '12px', marginBottom: '1.5rem', textAlign: 'left', boxShadow: '0 4px 12px rgba(88, 101, 242, 0.05)' }}>
-              <h4 style={{ color: '#7289da', marginTop: 0, marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            <div className="discord-box">
+              <h4 className="discord-box-title">
                 <MessageSquare style={{ width: '18px', height: '18px' }} /> MASUK LINK DISCORD PROBATUS
               </h4>
-              <a href="https://discord.gg/DqZxnF5zbr" target="_blank" rel="noopener noreferrer" className="btn" style={{ backgroundColor: '#5865F2', color: 'white', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', width: '100%', textDecoration: 'none', padding: '0.85rem', borderRadius: '8px', fontWeight: 700, marginBottom: '0.5rem', transition: 'background 0.2s', boxShadow: '0 4px 12px rgba(88, 101, 242, 0.2)' }}>
-                Hubungkan ke Discord <ExternalLink style={{ width: '16px', height: '16px' }} />
+              <a href="https://discord.gg/DqZxnF5zbr" target="_blank" rel="noopener noreferrer" className="discord-link-btn">
+                Hubungkan ke Discord <ExternalLink className="inline-icon" />
               </a>
             </div>
 
-            {/* Interview Information */}
-            <div style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.06)', padding: '1.5rem', borderRadius: '12px', marginBottom: '2rem', textAlign: 'left', fontSize: '0.95rem', lineHeight: '1.6' }}>
-              <p style={{ marginTop: 0, marginBottom: '0.85rem', color: 'var(--color-text-primary, #fff)' }}>
+            <div className="interview-box">
+              <p>
                 Bagi yang sudah mengisi formulir, bisa langsung datang ke <strong>kantor sheriff Kerajaan Roxwood (Koordinat 928)</strong> untuk melakukan interview.
               </p>
-              <div style={{ background: 'rgba(245, 158, 11, 0.08)', borderLeft: '4px solid #f59e0b', padding: '0.85rem', borderRadius: '6px', fontSize: '0.9rem', color: '#fbbf24', display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
+              <div className="interview-warning">
                 <AlertTriangle style={{ width: '18px', height: '18px', flexShrink: 0, marginTop: '2px' }} />
                 <span>Jangan lupa untuk membawa/membuat dokumen wajib berikut: <strong>KTP, SKCS, Surat Kesehatan, dan SIM Roxwood</strong>.</span>
               </div>
             </div>
 
-            <button type="button" className="btn btn-success" onClick={() => window.location.href = '/'} style={{ width: '100%', padding: '0.85rem', fontWeight: 700, borderRadius: '8px', cursor: 'pointer' }}>
-              Saya Mengerti & Kembali <ArrowRight style={{ width: '16px', height: '16px', display: 'inline-block', verticalAlign: 'middle', marginLeft: '4px' }} />
+            <button type="button" className="btn btn-success btn-back-home" onClick={() => window.location.href = '/'}>
+              Saya Mengerti & Kembali <ArrowRight className="inline-icon" />
             </button>
           </div>
         </div>

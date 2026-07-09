@@ -49,6 +49,7 @@ export async function listUsers(accessToken: string) {
         email: u.email || '',
         username: u.user_metadata?.username || u.email?.split('@')[0] || 'Unknown',
         role: u.user_metadata?.role === 'admin' ? 'dismag' : (u.user_metadata?.role === 'trainer' ? 'pelatih' : (u.user_metadata?.role || 'dismag')),
+        status: u.user_metadata?.status || 'active',
         created_at: u.created_at,
         last_sign_in_at: u.last_sign_in_at
       }))
@@ -110,6 +111,46 @@ export async function deleteUser(accessToken: string, targetUserId: string) {
     return {
       success: false,
       message: err.message || 'Gagal menghapus akun.'
+    };
+  }
+}
+
+export async function updateUserStatus(accessToken: string, targetUserId: string, status: 'active' | 'inactive') {
+  try {
+    const actor = await verifySuperAdmin(accessToken);
+
+    if (actor.id === targetUserId) {
+      throw new Error('Anda tidak dapat mengubah status akun Anda sendiri.');
+    }
+
+    const adminClient = getSupabaseAdmin();
+    
+    // Get current user metadata to preserve other fields
+    const { data: { user }, error: getError } = await adminClient.auth.admin.getUserById(targetUserId);
+    if (getError || !user) throw new Error('Pengguna tidak ditemukan.');
+
+    const currentMetadata = user.user_metadata || {};
+
+    const { data, error } = await adminClient.auth.admin.updateUserById(
+      targetUserId,
+      {
+        user_metadata: {
+          ...currentMetadata,
+          status: status
+        }
+      }
+    );
+
+    if (error) throw error;
+
+    return {
+      success: true,
+      message: `Status akun ${data.user?.email} berhasil diubah menjadi ${status === 'active' ? 'Aktif' : 'Nonaktif'}.`
+    };
+  } catch (err: any) {
+    return {
+      success: false,
+      message: err.message || 'Gagal mengubah status akun.'
     };
   }
 }

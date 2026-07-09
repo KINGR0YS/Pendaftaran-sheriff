@@ -43,23 +43,23 @@ export default function LoginPage() {
   };
 
   return (
-    <div style={{ position: 'relative', minHeight: 'calc(100vh - 70px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
+    <div className="login-page-root">
       <div className="glow-bg glow-1"></div>
       <div className="glow-bg glow-2"></div>
 
       <div className="login-container glass-card">
         <div className="login-header">
-          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1.5rem', marginBottom: '1.5rem' }}>
-            <Image src="/logo.png" alt="Roxwood Sheriff Logo" width={100} height={100} style={{ objectFit: 'contain', filter: 'drop-shadow(0 0 10px rgba(212, 175, 55, 0.25))' }} />
-            <Image src="/logo-dismag.png" alt="DISMAG Logo" width={100} height={100} style={{ objectFit: 'contain', filter: 'drop-shadow(0 0 10px rgba(212, 175, 55, 0.25))' }} />
+          <div className="login-logo-row">
+            <Image src="/logo.png" alt="Roxwood Sheriff Logo" width={100} height={100} className="login-logo-img" />
+            <Image src="/logo-dismag.png" alt="DISMAG Logo" width={100} height={100} className="login-logo-img" />
           </div>
           <h2>Akses database Probatus</h2>
           <p>Silahkan login menggunakan akun yang sudah di siapkan untuk mengakses database.</p>
         </div>
 
-        <form onSubmit={handleLogin} style={{ marginTop: '1.5rem' }}>
-          <div className="form-group" style={{ marginBottom: '1.25rem' }}>
-            <label htmlFor="login-email" style={{ fontWeight: 500, fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>
+        <form onSubmit={handleLogin} className="login-form">
+          <div className="form-group login-form-group">
+            <label htmlFor="login-email" className="login-label">
               Email Kantor <span className="required">*</span>
             </label>
             <input
@@ -71,8 +71,8 @@ export default function LoginPage() {
               placeholder="admin@roxwood.gov"
             />
           </div>
-          <div className="form-group" style={{ marginBottom: '1.5rem' }}>
-            <label htmlFor="login-password" style={{ fontWeight: 500, fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>
+          <div className="form-group login-form-group-last">
+            <label htmlFor="login-password" className="login-label">
               Kata Sandi <span className="required">*</span>
             </label>
             <input
@@ -84,20 +84,20 @@ export default function LoginPage() {
               placeholder="••••••••"
             />
           </div>
-          <button type="submit" className="btn btn-block btn-primary" disabled={loading} style={{ height: 48 }}>
+          <button type="submit" className="btn btn-block btn-primary login-submit-btn" disabled={loading}>
             {loading ? 'Mengautentikasi...' : <>Autentikasi Akses <ShieldCheck size={16} /></>}
           </button>
         </form>
 
-        <div style={{ marginTop: '1.5rem', padding: '1rem', background: 'rgba(239, 68, 68, 0.05)', border: '1px solid rgba(239, 68, 68, 0.2)', borderRadius: 8 }}>
-          <h4 style={{ fontSize: '0.85rem', color: 'var(--color-error)', marginBottom: '0.25rem' }}>Peringatan</h4>
-          <p style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)' }}>
+        <div className="login-warning-box">
+          <h4 className="login-warning-title">Peringatan</h4>
+          <p className="login-warning-text">
             Gunakan akses dengan bijak jangan mengedit atau menghapus data tanpa konfirmasi Anggota Dismag lain nya.
           </p>
         </div>
 
-        <div style={{ marginTop: '1.5rem', textAlign: 'center' }}>
-          <p style={{ color: 'var(--color-text-muted)', fontSize: '0.75rem' }}>Hanya untuk personel terdaftar. Aktivitas login dicatat secara OOC.</p>
+        <div className="login-footer">
+          <p className="login-footer-text">Hanya untuk personel terdaftar. Aktivitas login dicatat secara OOC.</p>
         </div>
       </div>
     </div>

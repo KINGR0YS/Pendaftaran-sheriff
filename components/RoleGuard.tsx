@@ -10,11 +10,13 @@ interface RoleGuardProps {
 
 export default function RoleGuard({ allowedRoles, children }: RoleGuardProps) {
   const [role, setRole] = useState<string | null>(null);
+  const [status, setStatus] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setRole(session?.user?.user_metadata?.role || 'dismag');
+      setStatus(session?.user?.user_metadata?.status || 'active');
       setLoading(false);
     });
   }, []);
@@ -49,7 +51,7 @@ export default function RoleGuard({ allowedRoles, children }: RoleGuardProps) {
   }
 
   const resolvedRole = role === 'admin' ? 'dismag' : (role === 'trainer' ? 'pelatih' : role);
-  const hasAccess = resolvedRole === 'superadmin' || allowedRoles.includes(resolvedRole!);
+  const hasAccess = (resolvedRole === 'superadmin' || allowedRoles.includes(resolvedRole!)) && status !== 'inactive';
 
   return (
     <div style={{ position: 'relative' }}>
@@ -111,7 +113,7 @@ export default function RoleGuard({ allowedRoles, children }: RoleGuardProps) {
               letterSpacing: '0.5px',
             }}
           >
-            Akses Terbatas
+            {status === 'inactive' ? 'Akun Dinonaktifkan' : 'Akses Terbatas'}
           </h3>
           <p
             style={{
@@ -121,10 +123,14 @@ export default function RoleGuard({ allowedRoles, children }: RoleGuardProps) {
               lineHeight: 1.65,
             }}
           >
-            Kamu tidak memiliki akses edit di panel ini.
+            {status === 'inactive' 
+              ? 'Akun Anda telah dinonaktifkan oleh Superadmin.' 
+              : 'Kamu tidak memiliki akses edit di panel ini.'}
             <br />
             <span style={{ color: 'var(--color-text-muted)', fontSize: '0.73rem' }}>
-              Silakan hubungi Admin untuk mendapatkan akses.
+              {status === 'inactive' 
+                ? 'Silakan hubungi Superadmin untuk mengaktifkan kembali.' 
+                : 'Silakan hubungi Admin untuk mendapatkan akses.'}
             </span>
           </p>
         </div>

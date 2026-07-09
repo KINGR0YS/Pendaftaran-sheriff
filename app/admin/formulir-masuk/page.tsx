@@ -3,8 +3,9 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/components/Toast';
 import Modal from '@/components/Modal';
-import { Eye, ShieldAlert, XCircle, CheckCircle2, Trash2, Inbox } from 'lucide-react';
+import { Eye, ShieldAlert, XCircle, CheckCircle2, Trash2, Inbox, ClipboardList } from 'lucide-react';
 import RoleGuard from '@/components/RoleGuard';
+import { logActivity } from '@/lib/activity-log';
 
 
 export default function ApplicationsPage() {
@@ -22,6 +23,19 @@ export default function ApplicationsPage() {
   const [appToReject, setAppToReject] = useState<any>(null);
   const [isSubmittingReject, setIsSubmittingReject] = useState(false);
   const [isSubmittingApprove, setIsSubmittingApprove] = useState(false);
+
+  // Interview Assessment Modal State
+  const [isAssessmentModalOpen, setIsAssessmentModalOpen] = useState(false);
+  const [appToAssess, setAppToAssess] = useState<any>(null);
+  const [assessmentForm, setAssessmentForm] = useState({
+    etika: '50',
+    komunikasi: '50',
+    penampilan: '50',
+    pemahaman_peraturan: '50',
+    pemahaman_kasus: '50',
+    pengalaman_organisasi: '',
+    pengalaman_instansi: ''
+  });
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -58,42 +72,67 @@ export default function ApplicationsPage() {
     }
   }
 
-  const logActivity = (text: string) => {
-    const logs = JSON.parse(localStorage.getItem('activity_logs') || '[]');
-    logs.unshift({ time: new Date().toISOString(), text });
-    localStorage.setItem('activity_logs', JSON.stringify(logs.slice(0, 10)));
+  const handleApproveClick = (app: any) => {
+    setAppToAssess(app);
+    setAssessmentForm({
+      etika: '50',
+      komunikasi: '50',
+      penampilan: '50',
+      pemahaman_peraturan: '50',
+      pemahaman_kasus: '50',
+      pengalaman_organisasi: '',
+      pengalaman_instansi: ''
+    });
+    setIsAssessmentModalOpen(true);
   };
 
-  const handleApprove = async (app: any) => {
-    if (!confirm(`Apakah Anda yakin ingin MENERIMA pendaftaran dari ${app.ic_name}?`)) return;
+  const handleAssessmentSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!appToAssess) return;
 
     setIsSubmittingApprove(true);
     try {
-      // 1. Update status and processed_by
+      // 1. Simpan penilaian ke database
+      const { error: assessErr } = await supabase.from('applications').update({
+        interview_etika: parseInt(assessmentForm.etika),
+        interview_komunikasi: parseInt(assessmentForm.komunikasi),
+        interview_penampilan: parseInt(assessmentForm.penampilan),
+        interview_pemahaman_peraturan: parseInt(assessmentForm.pemahaman_peraturan),
+        interview_pemahaman_kasus: parseInt(assessmentForm.pemahaman_kasus),
+        interview_pengalaman_organisasi: assessmentForm.pengalaman_organisasi,
+        interview_pengalaman_instansi: assessmentForm.pengalaman_instansi,
+        interview_evaluator: displayName,
+        interview_assessed_at: new Date().toISOString()
+      }).eq('id', appToAssess.id);
+      if (assessErr) throw assessErr;
+
+      // 2. Update status and processed_by
       const { error: appErr } = await supabase.from('applications').update({ 
         status: 'approved',
         processed_by: displayName
-      }).eq('id', app.id);
+      }).eq('id', appToAssess.id);
       if (appErr) throw appErr;
 
-      // 2. Insert to roster (optional but good practice)
+      // 3. Insert to roster
       const callsign = "PROB-" + Math.random().toString(36).substr(2, 5).toUpperCase();
       const { error: rosterErr } = await supabase.from('roster').insert([{
-        ic_name: app.ic_name,
+        ic_name: appToAssess.ic_name,
         callsign,
         rank: 'Cadet',
         division: 'Patrol',
         status: 'Active',
-        batch: app.batch
+        batch: appToAssess.batch
       }]);
       if (rosterErr) console.warn("Roster insert failed/skipped:", rosterErr.message);
 
-      logActivity(`Pimpinan menyetujui formulir <strong>${app.ic_name}</strong>`);
-      showToast('Formulir berhasil disetujui.', 'success');
+      logActivity(`Pimpinan menyetujui formulir <strong>${appToAssess.ic_name}</strong> dengan penilaian interview`);
+      showToast('Formulir berhasil disetujui dengan penilaian.', 'success');
+      setIsAssessmentModalOpen(false);
       setIsModalOpen(false);
+      setAppToAssess(null);
       loadApplications();
     } catch (err: any) {
-      showToast('Gagal menyetujui formulir.', 'error');
+      showToast('Gagal menyetujui formulir: ' + err.message, 'error');
     } finally {
       setIsSubmittingApprove(false);
     }
@@ -158,7 +197,7 @@ export default function ApplicationsPage() {
       <div className="header-action-row">
         <h2 className="dashboard-title">
           Evaluasi Formulir Pendaftaran
-          <span style={{ marginLeft: '0.75rem', fontSize: '0.8rem', background: 'var(--color-bg-card)', padding: '0.2rem 0.6rem', borderRadius: '12px', border: '1px solid var(--color-border-custom)', color: 'var(--color-text-secondary)' }}>
+          <span className="count-badge">
             {isLoading ? '...' : `${apps.length} formulir`}
           </span>
         </h2>
@@ -173,9 +212,9 @@ export default function ApplicationsPage() {
       </div>
 
       {isLoading ? (
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '300px', gap: '1rem' }}>
+        <div className="loading-container">
           <div className="loading-spinner" />
-          <p style={{ color: 'var(--color-text-muted)', fontSize: '0.85rem' }}>Memuat daftar pendaftaran...</p>
+          <p>Memuat daftar pendaftaran...</p>
         </div>
       ) : apps.length === 0 ? (
         <div className="empty-state">
@@ -219,14 +258,15 @@ export default function ApplicationsPage() {
         open={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         title="Detail Formulir Pendaftaran"
+        wide
         footer={
           selectedApp?.status === 'pending' ? (
             <>
               <button className="btn btn-secondary" onClick={() => handleRejectClick(selectedApp)} disabled={isSubmittingApprove}>
                 Tolak Formulir <XCircle size={16} />
               </button>
-              <button className="btn btn-success" onClick={() => handleApprove(selectedApp)} disabled={isSubmittingApprove}>
-                {isSubmittingApprove ? 'Memproses...' : 'Terima Formulir'} <CheckCircle2 size={16} />
+              <button className="btn btn-success" onClick={() => handleApproveClick(selectedApp)} disabled={isSubmittingApprove}>
+                {isSubmittingApprove ? 'Memproses...' : 'Terima & Nilai'} <CheckCircle2 size={16} />
               </button>
             </>
           ) : selectedApp?.status === 'approved' ? (
@@ -286,11 +326,11 @@ export default function ApplicationsPage() {
                   <span>Angkatan</span>
                   <span>Angkatan {selectedApp.batch || '1'}</span>
                 </div>
-                <div className="detail-label-value" style={{ gridColumn: 'span 2', marginTop: '0.5rem' }}>
+                <div className="detail-label-value span-2">
                   <span>Pengalaman RP</span>
                   <span>{selectedApp.rp_experience_ooc || '-'}</span>
                 </div>
-                <div className="detail-label-value" style={{ gridColumn: 'span 2', marginTop: '0.5rem' }}>
+                <div className="detail-label-value span-2">
                   <span>Tanggungan di Kota Lain</span>
                   <span>{selectedApp.obligations_other_cities || '-'}</span>
                 </div>
@@ -328,7 +368,7 @@ export default function ApplicationsPage() {
                   <span>Nomor HP</span>
                   <span>{selectedApp.phone_number}</span>
                 </div>
-                <div className="detail-label-value" style={{ gridColumn: 'span 2', marginTop: '0.5rem' }}>
+                <div className="detail-label-value span-2">
                   <span>Riwayat Pengalaman LEO</span>
                   <span>{selectedApp.experience}</span>
                 </div>
@@ -361,19 +401,19 @@ export default function ApplicationsPage() {
             </div>
 
             {selectedApp.status === 'rejected' && (
-              <div className="decision-box reject">
+              <div className="decision-box rejected">
                 <h4>Alasan Penolakan Formulir:</h4>
                 <p>{selectedApp.rejection_reason || 'Tidak ada alasan yang diberikan.'}</p>
-                <div style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
+                <div className="decision-meta">
                   Ditolak oleh: {selectedApp.processed_by || 'Admin'}
                 </div>
               </div>
             )}
             
             {selectedApp.status === 'approved' && (
-              <div className="decision-box" style={{ background: 'rgba(16, 185, 129, 0.05)', border: '1px solid rgba(16, 185, 129, 0.2)', padding: '1rem', borderRadius: '8px', marginTop: '1rem' }}>
-                <h4 style={{ color: 'var(--color-success)', fontSize: '0.85rem', marginBottom: '0.25rem' }}>Status Formulir: Diterima</h4>
-                <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
+              <div className="decision-box approved">
+                <h4>Status Formulir: Diterima</h4>
+                <div className="decision-meta">
                   Diproses oleh: {selectedApp.processed_by || 'Admin'}
                 </div>
               </div>
@@ -394,12 +434,12 @@ export default function ApplicationsPage() {
             <label htmlFor="reject-reason-input">Berikan Alasan Penolakan <span className="required">*</span></label>
             <textarea
               id="reject-reason-input"
+              className="form-input"
               rows={4}
               value={rejectReason}
               onChange={(e) => setRejectReason(e.target.value)}
               placeholder="Contoh: Jawaban kualifikasi personal kurang lengkap / KTP/Steam HEX tidak valid."
               required
-              style={{ width: '100%' }}
             />
           </div>
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
@@ -408,6 +448,139 @@ export default function ApplicationsPage() {
             </button>
             <button type="submit" className="btn btn-danger" disabled={isSubmittingReject}>
               {isSubmittingReject ? 'Memproses...' : 'Tolak Pendaftaran'}
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Interview Assessment Modal */}
+      <Modal
+        open={isAssessmentModalOpen}
+        onClose={() => { if (!isSubmittingApprove) { setIsAssessmentModalOpen(false); setAppToAssess(null); } }}
+        title="Penilaian Interview"
+        wide
+        footer={null}
+      >
+        <form onSubmit={handleAssessmentSubmit}>
+          <div className="assessment-desc-box">
+            <ClipboardList size={20} className="assessment-desc-icon" />
+            <p className="assessment-desc-text">
+              Berikan penilaian untuk <strong>{appToAssess?.ic_name}</strong> sebelum menyetujui formulir pendaftaran.
+            </p>
+          </div>
+
+          {/* Penilaian Numerik 1-100 */}
+          <div className="assessment-grid">
+            <div className="form-group">
+              <label>Etika <span className="required">*</span></label>
+              <div className="assessment-slider-group">
+                <input
+                  type="range"
+                  min="1"
+                  max="100"
+                  value={assessmentForm.etika}
+                  onChange={(e) => setAssessmentForm(prev => ({ ...prev, etika: e.target.value }))}
+                  className="assessment-slider"
+                  required
+                />
+                <span className="assessment-value">{assessmentForm.etika}</span>
+              </div>
+            </div>
+            <div className="form-group">
+              <label>Komunikasi <span className="required">*</span></label>
+              <div className="assessment-slider-group">
+                <input
+                  type="range"
+                  min="1"
+                  max="100"
+                  value={assessmentForm.komunikasi}
+                  onChange={(e) => setAssessmentForm(prev => ({ ...prev, komunikasi: e.target.value }))}
+                  className="assessment-slider"
+                  required
+                />
+                <span className="assessment-value">{assessmentForm.komunikasi}</span>
+              </div>
+            </div>
+            <div className="form-group">
+              <label>Penampilan <span className="required">*</span></label>
+              <div className="assessment-slider-group">
+                <input
+                  type="range"
+                  min="1"
+                  max="100"
+                  value={assessmentForm.penampilan}
+                  onChange={(e) => setAssessmentForm(prev => ({ ...prev, penampilan: e.target.value }))}
+                  className="assessment-slider"
+                  required
+                />
+                <span className="assessment-value">{assessmentForm.penampilan}</span>
+              </div>
+            </div>
+            <div className="form-group">
+              <label>Pemahaman Peraturan <span className="required">*</span></label>
+              <div className="assessment-slider-group">
+                <input
+                  type="range"
+                  min="1"
+                  max="100"
+                  value={assessmentForm.pemahaman_peraturan}
+                  onChange={(e) => setAssessmentForm(prev => ({ ...prev, pemahaman_peraturan: e.target.value }))}
+                  className="assessment-slider"
+                  required
+                />
+                <span className="assessment-value">{assessmentForm.pemahaman_peraturan}</span>
+              </div>
+            </div>
+            <div className="form-group">
+              <label>Pemahaman Kasus <span className="required">*</span></label>
+              <div className="assessment-slider-group">
+                <input
+                  type="range"
+                  min="1"
+                  max="100"
+                  value={assessmentForm.pemahaman_kasus}
+                  onChange={(e) => setAssessmentForm(prev => ({ ...prev, pemahaman_kasus: e.target.value }))}
+                  className="assessment-slider"
+                  required
+                />
+                <span className="assessment-value">{assessmentForm.pemahaman_kasus}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Penilaian Manual */}
+          <div className="assessment-manual-section">
+            <h4>Penilaian Tambahan</h4>
+            <div className="form-group">
+              <label htmlFor="pengalaman-organisasi">Pengalaman Organisasi</label>
+              <textarea
+                id="pengalaman-organisasi"
+                className="form-input"
+                rows={3}
+                value={assessmentForm.pengalaman_organisasi}
+                onChange={(e) => setAssessmentForm(prev => ({ ...prev, pengalaman_organisasi: e.target.value }))}
+                placeholder="Catat pengalaman organisasi yang dimiliki pendaftar..."
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="pengalaman-instansi">Pengalaman Instansi</label>
+              <textarea
+                id="pengalaman-instansi"
+                className="form-input"
+                rows={3}
+                value={assessmentForm.pengalaman_instansi}
+                onChange={(e) => setAssessmentForm(prev => ({ ...prev, pengalaman_instansi: e.target.value }))}
+                placeholder="Catat pengalaman instansi/pekerjaan yang dimiliki pendaftar..."
+              />
+            </div>
+          </div>
+
+          <div className="form-actions" style={{ borderTop: '1px solid var(--color-border-custom)', paddingTop: '1.25rem', marginTop: '0.5rem' }}>
+            <button type="button" className="btn btn-secondary" onClick={() => { setIsAssessmentModalOpen(false); setAppToAssess(null); }} disabled={isSubmittingApprove}>
+              Batal
+            </button>
+            <button type="submit" className="btn btn-success" disabled={isSubmittingApprove} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              {isSubmittingApprove ? 'Menyetujui...' : 'Setujui & Simpan Penilaian'} <CheckCircle2 size={16} />
             </button>
           </div>
         </form>
