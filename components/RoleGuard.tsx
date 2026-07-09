@@ -14,9 +14,15 @@ export default function RoleGuard({ allowedRoles, children }: RoleGuardProps) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setRole(session?.user?.user_metadata?.role || 'dismag');
-      setStatus(session?.user?.user_metadata?.status || 'active');
+    // Gunakan getUser() untuk memvalidasi token langsung ke server Supabase
+    supabase.auth.getUser().then(({ data: { user }, error }) => {
+      if (error || !user) {
+        setRole('dismag');
+        setStatus('inactive');
+      } else {
+        setRole(user.user_metadata?.role || 'dismag');
+        setStatus(user.user_metadata?.status || 'active');
+      }
       setLoading(false);
     });
   }, []);

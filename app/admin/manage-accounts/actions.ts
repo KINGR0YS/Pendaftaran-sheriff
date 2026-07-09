@@ -78,9 +78,12 @@ export async function forceResetPassword(accessToken: string, targetUserId: stri
 
     if (error) throw error;
 
+    // Logout paksa dari semua perangkat (global sign out)
+    await adminClient.auth.admin.signOut(targetUserId, 'global');
+
     return {
       success: true,
-      message: `Password untuk akun ${data.user?.email} berhasil direset.`
+      message: `Password untuk akun ${data.user?.email} berhasil direset dan sesi di semua perangkat telah dikeluarkan.`
     };
   } catch (err: any) {
     return {
@@ -143,9 +146,14 @@ export async function updateUserStatus(accessToken: string, targetUserId: string
 
     if (error) throw error;
 
+    // Jika dinonaktifkan, keluarkan paksa dari semua perangkat secara instan
+    if (status === 'inactive') {
+      await adminClient.auth.admin.signOut(targetUserId, 'global');
+    }
+
     return {
       success: true,
-      message: `Status akun ${data.user?.email} berhasil diubah menjadi ${status === 'active' ? 'Aktif' : 'Nonaktif'}.`
+      message: `Status akun ${data.user?.email} berhasil diubah menjadi ${status === 'active' ? 'Aktif' : 'Nonaktif'}${status === 'inactive' ? ' dan sesi di semua perangkat telah dikeluarkan' : ''}.`
     };
   } catch (err: any) {
     return {

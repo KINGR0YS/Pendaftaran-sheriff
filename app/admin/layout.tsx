@@ -11,18 +11,35 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [isInactive, setIsInactive] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session) {
-        router.push('/login');
+    // Gunakan getUser() untuk memvalidasi token langsung ke server Supabase
+    // Ini memastikan jika token di-revoke (global sign out), request akan gagal
+    supabase.auth.getUser().then(({ data: { user }, error }) => {
+      if (error || !user) {
+        supabase.auth.signOut().then(() => {
+          router.push('/login');
+        });
         return;
       }
-      if (session.user?.user_metadata?.status === 'inactive') {
+      if (user.user_metadata?.status === 'inactive') {
         setIsInactive(true);
         setLoading(false);
         return;
       }
       setLoading(false);
     });
+
+    // Dengarkan perubahan auth (misal jika di-sign out secara global)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT' || !session) {
+        router.push('/login');
+      } else if (session.user?.user_metadata?.status === 'inactive') {
+        setIsInactive(true);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [router]);
 
   if (loading) {
