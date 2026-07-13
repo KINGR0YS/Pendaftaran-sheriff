@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { MailWarning, CheckCircle2, XCircle, Users, Inbox } from 'lucide-react';
 import RoleGuard from '@/components/RoleGuard';
+import { getSystemSettings } from '@/lib/settings';
 
 
 export default function AdminStatsPage() {
@@ -25,7 +26,8 @@ export default function AdminStatsPage() {
         .eq('status', 'pending');
       setPendingCount(pending || 0);
 
-      const activeBatch = localStorage.getItem('active_batch') || '1';
+      const settings = await getSystemSettings();
+      const activeBatch = settings.active_batch;
       const { count: accepted } = await supabase
         .from('applications')
         .select('*', { count: 'exact', head: true })

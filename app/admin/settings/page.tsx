@@ -4,6 +4,7 @@ import { useToast } from '@/components/Toast';
 import { supabase } from '@/lib/supabase';
 import { Save, KeyRound, UserPlus } from 'lucide-react';
 import { logActivity } from '@/lib/activity-log';
+import { getSystemSettings, updateSystemSetting } from '@/lib/settings';
 
 export default function SettingsPage() {
   const { showToast } = useToast();
@@ -25,8 +26,10 @@ export default function SettingsPage() {
   const [isCreatingAccount, setIsCreatingAccount] = useState(false);
 
   useEffect(() => {
-    setRecruitmentStatus(localStorage.getItem('recruitment_status') || 'open');
-    setActiveBatch(localStorage.getItem('active_batch') || '1');
+    getSystemSettings().then((settings) => {
+      setRecruitmentStatus(settings.recruitment_status);
+      setActiveBatch(settings.active_batch);
+    });
     
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
@@ -35,11 +38,17 @@ export default function SettingsPage() {
     });
   }, []);
 
-  const handleSaveRecruitmentSettings = () => {
-    localStorage.setItem('active_batch', activeBatch);
-    localStorage.setItem('recruitment_status', recruitmentStatus);
+  const handleSaveRecruitmentSettings = async () => {
+    const successStatus = await updateSystemSetting('recruitment_status', recruitmentStatus);
+    const successBatch = await updateSystemSetting('active_batch', activeBatch);
+    
     logActivity(`Mengubah status pendaftaran menjadi ${recruitmentStatus} dan angkatan aktif menjadi ${activeBatch}`);
-    showToast('Pengaturan rekrutmen & angkatan berhasil disimpan.', 'success');
+    
+    if (successStatus && successBatch) {
+      showToast('Pengaturan rekrutmen & angkatan berhasil disimpan secara global.', 'success');
+    } else {
+      showToast('Pengaturan disimpan secara lokal. Pastikan Anda telah menjalankan LANGKAH 11 di Supabase SQL Editor Anda!', 'warning');
+    }
   };
 
   const handleChangePassword = async (e: React.FormEvent) => {

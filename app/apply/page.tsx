@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/components/Toast';
 import { ChevronRight, ChevronLeft, Check, MessageSquare, ExternalLink, AlertTriangle, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { getSystemSettings } from '@/lib/settings';
 
 export default function ApplyPage() {
   const { showToast } = useToast();
@@ -34,15 +35,7 @@ export default function ApplyPage() {
   });
 
   useEffect(() => {
-    const recruitmentStatus = localStorage.getItem('recruitment_status') || 'open';
     const allowApplyAccess = localStorage.getItem('allowApplyAccess') === 'true';
-    setActiveBatch(localStorage.getItem('active_batch') || '1');
-
-    if (recruitmentStatus === 'closed') {
-      showToast('Pendaftaran ditutup saat ini!', 'error');
-      window.location.href = '/';
-      return;
-    }
 
     if (!allowApplyAccess) {
       showToast('Silakan gulir halaman utama sampai paling bawah untuk melakukan pendaftaran!', 'warning');
@@ -52,6 +45,14 @@ export default function ApplyPage() {
 
     // Reset izin agar tidak bisa di-bypass dengan reload atau bookmark langsung
     localStorage.removeItem('allowApplyAccess');
+
+    getSystemSettings().then((settings) => {
+      setActiveBatch(settings.active_batch);
+      if (settings.recruitment_status === 'closed') {
+        showToast('Pendaftaran ditutup saat ini!', 'error');
+        window.location.href = '/';
+      }
+    });
   }, [showToast]);
 
   const handleChange = (e: any) => {

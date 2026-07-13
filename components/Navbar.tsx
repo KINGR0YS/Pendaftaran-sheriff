@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase';
 import { useToast } from '@/components/Toast';
 import { ShieldAlert, LayoutDashboard, LogOut, Menu } from 'lucide-react';
 import Image from 'next/image';
+import { getSystemSettings } from '@/lib/settings';
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -18,8 +19,12 @@ export default function Navbar() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => setUser(session?.user ?? null));
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, s) => setUser(s?.user ?? null));
-    setRecruitmentStatus(localStorage.getItem('recruitment_status') || 'open');
-    setActiveBatch(localStorage.getItem('active_batch') || '1');
+    
+    getSystemSettings().then((settings) => {
+      setRecruitmentStatus(settings.recruitment_status);
+      setActiveBatch(settings.active_batch);
+    });
+
     return () => subscription.unsubscribe();
   }, []);
 

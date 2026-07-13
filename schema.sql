@@ -203,3 +203,21 @@ ALTER TABLE applications ADD COLUMN IF NOT EXISTS interview_pengalaman_organisas
 ALTER TABLE applications ADD COLUMN IF NOT EXISTS interview_pengalaman_instansi TEXT DEFAULT NULL;
 ALTER TABLE applications ADD COLUMN IF NOT EXISTS interview_evaluator TEXT DEFAULT NULL;
 ALTER TABLE applications ADD COLUMN IF NOT EXISTS interview_assessed_at TIMESTAMP WITH TIME ZONE DEFAULT NULL;
+
+-- -------------------------------------------------------
+-- LANGKAH 11: Tabel Pengaturan Sistem (Global Settings)
+-- -------------------------------------------------------
+CREATE TABLE IF NOT EXISTS system_settings (
+  key TEXT PRIMARY KEY,
+  value TEXT NOT NULL,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Insert default values jika belum ada
+INSERT INTO system_settings (key, value) VALUES 
+('active_batch', '1'),
+('recruitment_status', 'open')
+ON CONFLICT (key) DO NOTHING;
+
+-- Nonaktifkan RLS agar dapat dibaca/tulis dari client
+ALTER TABLE system_settings DISABLE ROW LEVEL SECURITY;

@@ -6,6 +6,7 @@ import Modal from '@/components/Modal';
 import { UserPlus, Eye, Search, Inbox, Trash2, FileText, ClipboardList } from 'lucide-react';
 import RoleGuard from '@/components/RoleGuard';
 import { logActivity } from '@/lib/activity-log';
+import { getSystemSettings } from '@/lib/settings';
 
 
 export default function RosterPage() {
@@ -38,7 +39,9 @@ export default function RosterPage() {
 
   useEffect(() => {
     loadRoster();
-    setActiveBatch(localStorage.getItem('active_batch') || '1');
+    getSystemSettings().then((settings) => {
+      setActiveBatch(settings.active_batch);
+    });
   }, []);
 
   async function loadRoster() {
