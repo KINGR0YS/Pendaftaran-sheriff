@@ -13,7 +13,7 @@ export default function Navbar() {
   const [user, setUser] = useState<any>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [recruitmentStatus, setRecruitmentStatus] = useState('open');
-  const [activeBatch, setActiveBatch] = useState('1');
+  const [activeBatch, setActiveBatch] = useState('');
   const { showToast } = useToast();
 
   useEffect(() => {
@@ -43,7 +43,11 @@ export default function Navbar() {
 
   const isClosed = recruitmentStatus === 'closed';
   const dotClass = isClosed ? 'pulse-dot closed' : 'pulse-dot active';
-  const statusText = isClosed ? 'REKRUTMEN: TUTUP' : `REKRUTMEN: BUKA (ANGKATAN ${activeBatch})`;
+  const statusText = isClosed 
+    ? 'REKRUTMEN: TUTUP' 
+    : activeBatch 
+      ? `REKRUTMEN: BUKA (ANGKATAN ${activeBatch})` 
+      : 'REKRUTMEN: BUKA';
 
   return (
     <header className="navbar">

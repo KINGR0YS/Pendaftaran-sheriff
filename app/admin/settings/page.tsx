@@ -9,7 +9,7 @@ import { getSystemSettings, updateSystemSetting } from '@/lib/settings';
 export default function SettingsPage() {
   const { showToast } = useToast();
   const [recruitmentStatus, setRecruitmentStatus] = useState('open');
-  const [activeBatch, setActiveBatch] = useState('1');
+  const [activeBatch, setActiveBatch] = useState('');
 
   // Change Password State
   const [currentPassword, setCurrentPassword] = useState('');

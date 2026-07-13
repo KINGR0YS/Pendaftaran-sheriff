@@ -17,7 +17,7 @@ export default function RosterPage() {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState<any>(null);
   const [detailTab, setDetailTab] = useState<'form' | 'assessment'>('form');
-  const [activeBatch, setActiveBatch] = useState('1');
+  const [activeBatch, setActiveBatch] = useState('');
   const [adminEmail, setAdminEmail] = useState('System Admin');
   const [isLoading, setIsLoading] = useState(true);
   const [sortBy, setSortBy] = useState<'batch' | 'name-asc' | 'name-desc'>('batch');

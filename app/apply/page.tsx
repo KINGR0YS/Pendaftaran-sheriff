@@ -8,7 +8,7 @@ import { getSystemSettings } from '@/lib/settings';
 export default function ApplyPage() {
   const { showToast } = useToast();
   const [step, setStep] = useState(1);
-  const [activeBatch, setActiveBatch] = useState('1');
+  const [activeBatch, setActiveBatch] = useState('');
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const [formData, setFormData] = useState({
