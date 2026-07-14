@@ -16,23 +16,16 @@ export default function AbsensiProbatusPage() {
   const [evaluatorName, setEvaluatorName] = useState('');
   const [currentUserRole, setCurrentUserRole] = useState<string>('pelatih');
   
-  // Tanggal Mulai Pelatihan (default: 13 hari sebelum hari ini agar hari ini jadi kolom terakhir)
-  const getDefaultStartDate = () => {
-    const today = new Date();
-    today.setDate(today.getDate() - 13);
-    const offset = today.getTimezoneOffset();
-    const localDate = new Date(today.getTime() - (offset * 60 * 1000));
-    return localDate.toISOString().split('T')[0];
-  };
-
-  const [startDate, setStartDate] = useState(getDefaultStartDate());
+  // Tanggal Mulai Pelatihan — akan dimuat dari database saat mount
+  const [startDate, setStartDate] = useState<string | null>(null);
   const [startDateLoaded, setStartDateLoaded] = useState(false);
   const [pendingDate, setPendingDate] = useState<string | null>(null);
   const [showDateConfirm, setShowDateConfirm] = useState(false);
   const [attendanceMatrix, setAttendanceMatrix] = useState<Record<string, Record<string, string>>>({});
 
   // Helper untuk generate 14 tanggal berurutan
-  const getDatesArray = (startStr: string) => {
+  const getDatesArray = (startStr: string | null) => {
+    if (!startStr) return [];
     const dates = [];
     const baseDate = new Date(startStr);
     for (let i = 0; i < 14; i++) {
@@ -57,7 +50,14 @@ export default function AbsensiProbatusPage() {
     });
     
     // Load start date from database (otomatis tersimpan jika belum ada)
-    getDateSetting('absensi_probatus_start_date', getDefaultStartDate()).then(date => {
+    const defaultDate = (() => {
+      const today = new Date();
+      today.setDate(today.getDate() - 13);
+      const offset = today.getTimezoneOffset();
+      return new Date(today.getTime() - (offset * 60 * 1000)).toISOString().split('T')[0];
+    })();
+
+    getDateSetting('absensi_probatus_start_date', defaultDate).then(date => {
       setStartDate(date);
       setStartDateLoaded(true);
     });
@@ -66,10 +66,10 @@ export default function AbsensiProbatusPage() {
   }, []);
 
   useEffect(() => {
-    if (startDateLoaded) {
+    if (startDateLoaded && startDate) {
       loadAttendanceData();
     }
-  }, [startDate, startDateLoaded, roster]);
+  }, [startDate, startDateLoaded, startDate, roster]);
 
   async function loadTrainees() {
     setIsLoading(true);
@@ -90,7 +90,7 @@ export default function AbsensiProbatusPage() {
   }
 
   async function loadAttendanceData() {
-    if (roster.length === 0) return;
+    if (roster.length === 0 || datesList.length === 0) return;
     try {
       const startStr = datesList[0].toISOString().split('T')[0];
       const endStr = datesList[13].toISOString().split('T')[0];
@@ -308,7 +308,7 @@ export default function AbsensiProbatusPage() {
         />
       </div>
 
-      {isLoading ? (
+      {!startDate || isLoading ? (
         <div className="loading-container">
           <div className="loading-spinner" />
           <p>Memuat data absensi...</p>

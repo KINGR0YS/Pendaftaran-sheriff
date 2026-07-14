@@ -62,20 +62,33 @@ export async function getSystemSettings(): Promise<SystemSettings> {
 
 export async function updateSystemSetting(key: string, value: string): Promise<boolean> {
   try {
-    const { error } = await supabase
+    // Coba update dulu
+    const { data: existing, error: selectError } = await supabase
       .from('system_settings')
-      .upsert({ key, value });
+      .select('key')
+      .eq('key', key)
+      .maybeSingle();
 
-    if (error) {
-      throw error;
+    if (selectError) throw selectError;
+
+    if (existing) {
+      // Key sudah ada, update value-nya
+      const { error } = await supabase
+        .from('system_settings')
+        .update({ value, updated_at: new Date().toISOString() })
+        .eq('key', key);
+      if (error) throw error;
+    } else {
+      // Key belum ada, insert baru
+      const { error } = await supabase
+        .from('system_settings')
+        .insert({ key, value });
+      if (error) throw error;
     }
 
-    setLocal(key, value);
     return true;
   } catch (err) {
     console.error(`Failed to update setting ${key} in Supabase:`, err);
-    // Keep local storage updated even if Supabase fails (e.g., table not created yet)
-    setLocal(key, value);
     return false;
   }
 }
@@ -128,12 +141,12 @@ export async function getDateSetting(key: string, fallbackDate: string): Promise
     }
 
     // Jika key belum ada di DB, simpan fallbackDate agar tidak berubah besok
-    const { error: upsertError } = await supabase
+    const { error: insertError } = await supabase
       .from('system_settings')
-      .upsert({ key, value: fallbackDate });
+      .insert({ key, value: fallbackDate });
 
-    if (upsertError) {
-      console.warn(`Gagal menyimpan default ${key}:`, upsertError.message);
+    if (insertError) {
+      console.warn(`Gagal menyimpan default ${key}:`, insertError.message);
     }
 
     return fallbackDate;

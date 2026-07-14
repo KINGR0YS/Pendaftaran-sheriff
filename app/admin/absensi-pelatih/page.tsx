@@ -20,16 +20,8 @@ export default function AbsensiPelatihPage() {
   const [dbError, setDbError] = useState<string | null>(null);
   const [currentUserRole, setCurrentUserRole] = useState<string>('pelatih');
   
-  // Tanggal Mulai Pelatihan (7 Hari)
-  const getDefaultStartDate = () => {
-    const today = new Date();
-    today.setDate(today.getDate() - 6); // Hari ini sebagai hari ke-7
-    const offset = today.getTimezoneOffset();
-    const localDate = new Date(today.getTime() - (offset * 60 * 1000));
-    return localDate.toISOString().split('T')[0];
-  };
-
-  const [startDate, setStartDate] = useState(getDefaultStartDate());
+  // Tanggal Mulai Pelatihan — akan dimuat dari database saat mount
+  const [startDate, setStartDate] = useState<string | null>(null);
   const [startDateLoaded, setStartDateLoaded] = useState(false);
   const [pendingDate, setPendingDate] = useState<string | null>(null);
   const [showDateConfirm, setShowDateConfirm] = useState(false);
@@ -43,9 +35,12 @@ export default function AbsensiPelatihPage() {
   const [selectedAccountId, setSelectedAccountId] = useState('');
 
   // Generate 7 tanggal berurutan
-  const getDatesArray = (startStr: string) => {
+  const getDatesArray = (startStr: string | null) => {
+    if (!startStr) return [];
     const dates = [];
     const baseDate = new Date(startStr);
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(baseDate);
     for (let i = 0; i < 7; i++) {
       const d = new Date(baseDate);
       d.setDate(baseDate.getDate() + i);
@@ -70,7 +65,14 @@ export default function AbsensiPelatihPage() {
     });
 
     // Load start date from database (otomatis tersimpan jika belum ada)
-    getDateSetting('absensi_pelatih_start_date', getDefaultStartDate()).then(date => {
+    const defaultDate = (() => {
+      const today = new Date();
+      today.setDate(today.getDate() - 6);
+      const offset = today.getTimezoneOffset();
+      return new Date(today.getTime() - (offset * 60 * 1000)).toISOString().split('T')[0];
+    })();
+
+    getDateSetting('absensi_pelatih_start_date', defaultDate).then(date => {
       setStartDate(date);
       setStartDateLoaded(true);
     });
@@ -79,10 +81,10 @@ export default function AbsensiPelatihPage() {
   }, []);
 
   useEffect(() => {
-    if (startDateLoaded && !dbError && staffRoster.length > 0) {
+    if (startDateLoaded && startDate && !dbError && staffRoster.length > 0) {
       loadAttendanceData();
     }
-  }, [startDate, startDateLoaded, staffRoster, dbError]);
+  }, [startDate, startDateLoaded, startDate, staffRoster, dbError]);
 
   async function loadStaffRoster() {
     setIsLoading(true);
@@ -110,6 +112,7 @@ export default function AbsensiPelatihPage() {
   }
 
   async function loadAttendanceData() {
+    if (datesList.length === 0) return;
     try {
       const startStr = datesList[0].toISOString().split('T')[0];
       const endStr = datesList[6].toISOString().split('T')[0];
@@ -489,7 +492,7 @@ ALTER TABLE staff_attendance DISABLE ROW LEVEL SECURITY;`}
           />
         </div>
 
-        {isLoading ? (
+        {!startDate || isLoading ? (
           <div className="loading-container">
             <div className="loading-spinner" />
             <p>Memuat data absensi...</p>
