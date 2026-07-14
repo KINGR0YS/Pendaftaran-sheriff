@@ -8,6 +8,7 @@ import Modal from '@/components/Modal';
 import RoleGuard from '@/components/RoleGuard';
 import { listRegisteredAccounts, addStaffMember, removeStaffMember } from './actions';
 import { logActivity } from '@/lib/activity-log';
+import { getSetting, updateSystemSetting } from '@/lib/settings';
 
 export default function AbsensiPelatihPage() {
   const { showToast } = useToast();
@@ -20,7 +21,7 @@ export default function AbsensiPelatihPage() {
   const [currentUserRole, setCurrentUserRole] = useState<string>('pelatih');
   
   // Tanggal Mulai Pelatihan (7 Hari)
-  const getInitialStartDate = () => {
+  const getDefaultStartDate = () => {
     const today = new Date();
     today.setDate(today.getDate() - 6); // Hari ini sebagai hari ke-7
     const offset = today.getTimezoneOffset();
@@ -28,7 +29,8 @@ export default function AbsensiPelatihPage() {
     return localDate.toISOString().split('T')[0];
   };
 
-  const [startDate, setStartDate] = useState(getInitialStartDate());
+  const [startDate, setStartDate] = useState(getDefaultStartDate());
+  const [startDateLoaded, setStartDateLoaded] = useState(false);
   const [pendingDate, setPendingDate] = useState<string | null>(null);
   const [showDateConfirm, setShowDateConfirm] = useState(false);
   const [evaluatorName, setEvaluatorName] = useState('');
@@ -66,15 +68,21 @@ export default function AbsensiPelatihPage() {
         setCurrentUserRole(normalizedRole);
       }
     });
+
+    // Load start date from database
+    getSetting('absensi_pelatih_start_date', getDefaultStartDate()).then(date => {
+      setStartDate(date);
+      setStartDateLoaded(true);
+    });
     
     loadStaffRoster();
   }, []);
 
   useEffect(() => {
-    if (!dbError && staffRoster.length > 0) {
+    if (startDateLoaded && !dbError && staffRoster.length > 0) {
       loadAttendanceData();
     }
-  }, [startDate, staffRoster, dbError]);
+  }, [startDate, startDateLoaded, staffRoster, dbError]);
 
   async function loadStaffRoster() {
     setIsLoading(true);
@@ -451,6 +459,7 @@ ALTER TABLE staff_attendance DISABLE ROW LEVEL SECURITY;`}
                     onClick={() => {
                       if (pendingDate) {
                         setStartDate(pendingDate);
+                        updateSystemSetting('absensi_pelatih_start_date', pendingDate);
                       }
                       setShowDateConfirm(false);
                       setPendingDate(null);

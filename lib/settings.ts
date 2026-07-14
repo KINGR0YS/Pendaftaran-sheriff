@@ -79,3 +79,28 @@ export async function updateSystemSetting(key: string, value: string): Promise<b
     return false;
   }
 }
+
+/**
+ * Mengambil nilai setting dari tabel system_settings langsung dari database.
+ * Tidak menggunakan localStorage agar nilai tersinkronasi ke semua pengguna.
+ * @param key Nama key setting
+ * @param defaultValue Nilai default jika key belum ada di database
+ */
+export async function getSetting(key: string, defaultValue: string): Promise<string> {
+  try {
+    const { data, error } = await supabase
+      .from('system_settings')
+      .select('value')
+      .eq('key', key)
+      .maybeSingle();
+
+    if (error) {
+      throw error;
+    }
+
+    return data?.value ?? defaultValue;
+  } catch (err) {
+    console.error(`Error fetching setting ${key} from database:`, err);
+    return defaultValue;
+  }
+}

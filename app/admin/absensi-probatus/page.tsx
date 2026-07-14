@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase';
 import { useToast } from '@/components/Toast';
 import { Search, Inbox, Calendar } from 'lucide-react';
 import { logActivity } from '@/lib/activity-log';
+import { getSetting, updateSystemSetting } from '@/lib/settings';
 
 export default function AbsensiProbatusPage() {
   const { showToast } = useToast();
@@ -16,7 +17,7 @@ export default function AbsensiProbatusPage() {
   const [currentUserRole, setCurrentUserRole] = useState<string>('pelatih');
   
   // Tanggal Mulai Pelatihan (default: 13 hari sebelum hari ini agar hari ini jadi kolom terakhir)
-  const getInitialStartDate = () => {
+  const getDefaultStartDate = () => {
     const today = new Date();
     today.setDate(today.getDate() - 13);
     const offset = today.getTimezoneOffset();
@@ -24,7 +25,8 @@ export default function AbsensiProbatusPage() {
     return localDate.toISOString().split('T')[0];
   };
 
-  const [startDate, setStartDate] = useState(getInitialStartDate());
+  const [startDate, setStartDate] = useState(getDefaultStartDate());
+  const [startDateLoaded, setStartDateLoaded] = useState(false);
   const [pendingDate, setPendingDate] = useState<string | null>(null);
   const [showDateConfirm, setShowDateConfirm] = useState(false);
   const [attendanceMatrix, setAttendanceMatrix] = useState<Record<string, Record<string, string>>>({});
@@ -53,12 +55,21 @@ export default function AbsensiProbatusPage() {
         setCurrentUserRole(normalizedRole);
       }
     });
+    
+    // Load start date from database
+    getSetting('absensi_probatus_start_date', getDefaultStartDate()).then(date => {
+      setStartDate(date);
+      setStartDateLoaded(true);
+    });
+    
     loadTrainees();
   }, []);
 
   useEffect(() => {
-    loadAttendanceData();
-  }, [startDate, roster]);
+    if (startDateLoaded) {
+      loadAttendanceData();
+    }
+  }, [startDate, startDateLoaded, roster]);
 
   async function loadTrainees() {
     setIsLoading(true);
@@ -267,6 +278,7 @@ export default function AbsensiProbatusPage() {
                     onClick={() => {
                       if (pendingDate) {
                         setStartDate(pendingDate);
+                        updateSystemSetting('absensi_probatus_start_date', pendingDate);
                       }
                       setShowDateConfirm(false);
                       setPendingDate(null);
