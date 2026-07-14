@@ -62,6 +62,8 @@ export async function getSystemSettings(): Promise<SystemSettings> {
 
 export async function updateSystemSetting(key: string, value: string): Promise<boolean> {
   try {
+    console.log(`[updateSystemSetting] Memulai update untuk key: ${key}, value: ${value}`);
+    
     // Coba update dulu
     const { data: existing, error: selectError } = await supabase
       .from('system_settings')
@@ -69,21 +71,34 @@ export async function updateSystemSetting(key: string, value: string): Promise<b
       .eq('key', key)
       .maybeSingle();
 
-    if (selectError) throw selectError;
+    if (selectError) {
+      console.error(`[updateSystemSetting] Error saat select key ${key}:`, selectError);
+      throw selectError;
+    }
 
     if (existing) {
+      console.log(`[updateSystemSetting] Key ${key} ditemukan, melakukan update...`);
       // Key sudah ada, update value-nya
       const { error } = await supabase
         .from('system_settings')
         .update({ value, updated_at: new Date().toISOString() })
         .eq('key', key);
-      if (error) throw error;
+      if (error) {
+        console.error(`[updateSystemSetting] Error saat update key ${key}:`, error);
+        throw error;
+      }
+      console.log(`[updateSystemSetting] Update berhasil untuk key ${key}`);
     } else {
+      console.log(`[updateSystemSetting] Key ${key} tidak ditemukan, melakukan insert...`);
       // Key belum ada, insert baru
       const { error } = await supabase
         .from('system_settings')
         .insert({ key, value });
-      if (error) throw error;
+      if (error) {
+        console.error(`[updateSystemSetting] Error saat insert key ${key}:`, error);
+        throw error;
+      }
+      console.log(`[updateSystemSetting] Insert berhasil untuk key ${key}`);
     }
 
     return true;
@@ -125,6 +140,7 @@ export async function getSetting(key: string, defaultValue: string): Promise<str
  */
 export async function getDateSetting(key: string, fallbackDate: string): Promise<string> {
   try {
+    console.log(`[getDateSetting] Membaca key: ${key}, fallback: ${fallbackDate}`);
     const { data, error } = await supabase
       .from('system_settings')
       .select('value')
@@ -132,15 +148,18 @@ export async function getDateSetting(key: string, fallbackDate: string): Promise
       .maybeSingle();
 
     if (error) {
+      console.error(`[getDateSetting] Error saat select key ${key}:`, error);
       throw error;
     }
 
     // Jika key sudah ada di DB, gunakan nilainya
     if (data?.value) {
+      console.log(`[getDateSetting] Ditemukan nilai di DB: ${data.value}`);
       return data.value;
     }
 
     // Jika key belum ada di DB, simpan fallbackDate agar tidak berubah besok
+    console.log(`[getDateSetting] Key ${key} tidak ada di DB, menyimpan fallbackDate: ${fallbackDate}`);
     const { error: insertError } = await supabase
       .from('system_settings')
       .insert({ key, value: fallbackDate });
