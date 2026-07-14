@@ -232,7 +232,7 @@ export default function AbsensiProbatusPage() {
               type="date"
               id="start-date-picker"
               className={`attendance-date-input ${currentUserRole === 'pelatih' ? 'restricted' : ''}`}
-              value={startDate}
+              value={startDate ?? ''}
               onChange={(e) => {
                 const newDate = e.target.value;
                 if (currentUserRole === 'pelatih') {

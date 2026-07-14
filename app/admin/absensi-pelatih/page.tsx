@@ -41,8 +41,6 @@ export default function AbsensiPelatihPage() {
     const baseDate = new Date(startStr);
     for (let i = 0; i < 7; i++) {
       const d = new Date(baseDate);
-    for (let i = 0; i < 7; i++) {
-      const d = new Date(baseDate);
       d.setDate(baseDate.getDate() + i);
       dates.push(d);
     }
@@ -415,7 +413,7 @@ ALTER TABLE staff_attendance DISABLE ROW LEVEL SECURITY;`}
               type="date"
               id="start-date-picker"
               className={`attendance-date-input ${currentUserRole === 'pelatih' ? 'restricted' : ''}`}
-              value={startDate}
+              value={startDate ?? ''}
               onChange={(e) => {
                 const newDate = e.target.value;
                 if (currentUserRole === 'pelatih') {
