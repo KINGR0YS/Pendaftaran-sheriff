@@ -104,3 +104,41 @@ export async function getSetting(key: string, defaultValue: string): Promise<str
     return defaultValue;
   }
 }
+
+/**
+ * Mengambil nilai setting tanggal dari database.
+ * Jika key belum ada di DB, otomatis simpan fallbackDate ke DB
+ * agar tanggal tidak berubah setiap hari (karena fallback dihitung dinamis).
+ */
+export async function getDateSetting(key: string, fallbackDate: string): Promise<string> {
+  try {
+    const { data, error } = await supabase
+      .from('system_settings')
+      .select('value')
+      .eq('key', key)
+      .maybeSingle();
+
+    if (error) {
+      throw error;
+    }
+
+    // Jika key sudah ada di DB, gunakan nilainya
+    if (data?.value) {
+      return data.value;
+    }
+
+    // Jika key belum ada di DB, simpan fallbackDate agar tidak berubah besok
+    const { error: upsertError } = await supabase
+      .from('system_settings')
+      .upsert({ key, value: fallbackDate });
+
+    if (upsertError) {
+      console.warn(`Gagal menyimpan default ${key}:`, upsertError.message);
+    }
+
+    return fallbackDate;
+  } catch (err) {
+    console.error(`Error fetching date setting ${key} from database:`, err);
+    return fallbackDate;
+  }
+}

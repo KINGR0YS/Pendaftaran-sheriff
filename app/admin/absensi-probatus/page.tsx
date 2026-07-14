@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase';
 import { useToast } from '@/components/Toast';
 import { Search, Inbox, Calendar } from 'lucide-react';
 import { logActivity } from '@/lib/activity-log';
-import { getSetting, updateSystemSetting } from '@/lib/settings';
+import { getDateSetting, updateSystemSetting } from '@/lib/settings';
 
 export default function AbsensiProbatusPage() {
   const { showToast } = useToast();
@@ -56,8 +56,8 @@ export default function AbsensiProbatusPage() {
       }
     });
     
-    // Load start date from database
-    getSetting('absensi_probatus_start_date', getDefaultStartDate()).then(date => {
+    // Load start date from database (otomatis tersimpan jika belum ada)
+    getDateSetting('absensi_probatus_start_date', getDefaultStartDate()).then(date => {
       setStartDate(date);
       setStartDateLoaded(true);
     });
@@ -275,10 +275,15 @@ export default function AbsensiProbatusPage() {
                   </button>
                   <button
                     className="btn btn-sm btn-primary btn-confirm-gold"
-                    onClick={() => {
+                    onClick={async () => {
                       if (pendingDate) {
-                        setStartDate(pendingDate);
-                        updateSystemSetting('absensi_probatus_start_date', pendingDate);
+                        const success = await updateSystemSetting('absensi_probatus_start_date', pendingDate);
+                        if (success) {
+                          setStartDate(pendingDate);
+                          showToast('Tanggal mulai absensi berhasil diubah.', 'success');
+                        } else {
+                          showToast('Gagal menyimpan tanggal ke database.', 'error');
+                        }
                       }
                       setShowDateConfirm(false);
                       setPendingDate(null);

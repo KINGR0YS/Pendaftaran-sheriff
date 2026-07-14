@@ -8,7 +8,7 @@ import Modal from '@/components/Modal';
 import RoleGuard from '@/components/RoleGuard';
 import { listRegisteredAccounts, addStaffMember, removeStaffMember } from './actions';
 import { logActivity } from '@/lib/activity-log';
-import { getSetting, updateSystemSetting } from '@/lib/settings';
+import { getDateSetting, updateSystemSetting } from '@/lib/settings';
 
 export default function AbsensiPelatihPage() {
   const { showToast } = useToast();
@@ -69,8 +69,8 @@ export default function AbsensiPelatihPage() {
       }
     });
 
-    // Load start date from database
-    getSetting('absensi_pelatih_start_date', getDefaultStartDate()).then(date => {
+    // Load start date from database (otomatis tersimpan jika belum ada)
+    getDateSetting('absensi_pelatih_start_date', getDefaultStartDate()).then(date => {
       setStartDate(date);
       setStartDateLoaded(true);
     });
@@ -456,10 +456,15 @@ ALTER TABLE staff_attendance DISABLE ROW LEVEL SECURITY;`}
                   </button>
                   <button
                     className="btn btn-sm btn-primary btn-confirm-gold"
-                    onClick={() => {
+                    onClick={async () => {
                       if (pendingDate) {
-                        setStartDate(pendingDate);
-                        updateSystemSetting('absensi_pelatih_start_date', pendingDate);
+                        const success = await updateSystemSetting('absensi_pelatih_start_date', pendingDate);
+                        if (success) {
+                          setStartDate(pendingDate);
+                          showToast('Tanggal mulai absensi berhasil diubah.', 'success');
+                        } else {
+                          showToast('Gagal menyimpan tanggal ke database.', 'error');
+                        }
                       }
                       setShowDateConfirm(false);
                       setPendingDate(null);
