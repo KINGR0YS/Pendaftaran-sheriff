@@ -10,7 +10,8 @@ import {
   listUsers, 
   forceResetPassword, 
   deleteUser,
-  updateUserStatus
+  updateUserStatus,
+  updateUserRole
 } from './actions';
 import { 
   KeyRound, 
@@ -23,7 +24,8 @@ import {
   Shield,
   UserCheck,
   UserX,
-  Power
+  Power,
+  UserPen
 } from 'lucide-react';
 
 interface AccountUser {
@@ -50,6 +52,12 @@ export default function ManageAccountsPage() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isSubmittingReset, setIsSubmittingReset] = useState(false);
+
+  // Edit Role Modal states
+  const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
+  const [selectedRoleUser, setSelectedRoleUser] = useState<AccountUser | null>(null);
+  const [newRole, setNewRole] = useState('');
+  const [isSubmittingRole, setIsSubmittingRole] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -106,6 +114,33 @@ export default function ManageAccountsPage() {
       showToast(res.message || 'Gagal mengubah password.', 'error');
     }
     setIsSubmittingReset(false);
+  };
+
+  const handleOpenRoleModal = (user: AccountUser) => {
+    setSelectedRoleUser(user);
+    setNewRole(user.role);
+    setIsRoleModalOpen(true);
+  };
+
+  const handleRoleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedRoleUser) return;
+    if (newRole === selectedRoleUser.role) {
+      setIsRoleModalOpen(false);
+      return;
+    }
+
+    setIsSubmittingRole(true);
+    const res = await updateUserRole(accessToken, selectedRoleUser.id, newRole);
+    if (res.success) {
+      showToast(res.message || 'Role berhasil diubah.', 'success');
+      logActivity(`Mengubah role akun <strong>${selectedRoleUser.username}</strong> dari ${selectedRoleUser.role.toUpperCase()} menjadi ${newRole.toUpperCase()}`);
+      setIsRoleModalOpen(false);
+      fetchUsers(accessToken);
+    } else {
+      showToast(res.message || 'Gagal mengubah role.', 'error');
+    }
+    setIsSubmittingRole(false);
   };
 
   const handleDeleteUser = async (targetUser: AccountUser) => {
@@ -222,6 +257,16 @@ export default function ManageAccountsPage() {
                         className={`icon-btn ${u.status === 'inactive' ? 'toggle-active' : 'toggle-inactive'}`}
                       >
                         {u.status === 'inactive' ? <UserCheck size={15} /> : <UserX size={15} />}
+                      </button>
+
+                      <button
+                        onClick={() => handleOpenRoleModal(u)}
+                        title="Ubah Role Akun"
+                        disabled={isCurrent}
+                        className="icon-btn edit-role"
+                        style={{ color: 'var(--color-gold)' }}
+                      >
+                        <UserPen size={15} />
                       </button>
 
                       <button
@@ -409,6 +454,53 @@ export default function ManageAccountsPage() {
                 disabled={isSubmittingReset}
               >
                 {isSubmittingReset ? 'Mereset...' : 'Simpan Password Baru'}
+              </button>
+            </div>
+          </form>
+        </Modal>
+
+        {/* Edit Role Modal */}
+        <Modal
+          open={isRoleModalOpen}
+          onClose={() => setIsRoleModalOpen(false)}
+          title={`Ubah Role: ${selectedRoleUser?.username}`}
+        >
+          <form onSubmit={handleRoleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+            <p style={{ fontSize: '0.82rem', color: 'var(--color-text-secondary)', margin: 0 }}>
+              Ubah level akses untuk akun <strong>{selectedRoleUser?.email}</strong>. 
+              Perubahan akan diterapkan pada Auth metadata dan tabel keanggotaan.
+            </p>
+
+            <div className="form-group">
+              <label htmlFor="edit-role-select">Role Baru <span className="required">*</span></label>
+              <select
+                id="edit-role-select"
+                value={newRole}
+                onChange={(e) => setNewRole(e.target.value)}
+                required
+              >
+                <option value="">-- Pilih Role --</option>
+                <option value="superadmin">Superadmin</option>
+                <option value="dismag">Dismag (Admin)</option>
+                <option value="pelatih">Pelatih (Trainer)</option>
+              </select>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '0.5rem' }}>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => setIsRoleModalOpen(false)}
+                disabled={isSubmittingRole}
+              >
+                Batal
+              </button>
+              <button
+                type="submit"
+                className="btn btn-primary"
+                disabled={isSubmittingRole}
+              >
+                {isSubmittingRole ? 'Menyimpan...' : 'Simpan Role Baru'}
               </button>
             </div>
           </form>

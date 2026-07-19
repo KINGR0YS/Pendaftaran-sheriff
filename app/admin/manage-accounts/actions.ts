@@ -162,3 +162,50 @@ export async function updateUserStatus(accessToken: string, targetUserId: string
     };
   }
 }
+
+export async function updateUserRole(accessToken: string, targetUserId: string, newRole: string) {
+  try {
+    const actor = await verifySuperAdmin(accessToken);
+
+    if (actor.id === targetUserId) {
+      throw new Error('Anda tidak dapat mengubah role akun Anda sendiri.');
+    }
+
+    const adminClient = getSupabaseAdmin();
+    
+    // 1. Dapatkan metadata user saat ini untuk menjaga field lain
+    const { data: { user }, error: getError } = await adminClient.auth.admin.getUserById(targetUserId);
+    if (getError || !user) throw new Error('Pengguna tidak ditemukan.');
+
+    const currentMetadata = user.user_metadata || {};
+
+    // 2. Update role di Supabase Auth metadata
+    const { error: updateError } = await adminClient.auth.admin.updateUserById(
+      targetUserId,
+      {
+        user_metadata: {
+          ...currentMetadata,
+          role: newRole
+        }
+      }
+    );
+
+    if (updateError) throw updateError;
+
+    // 3. Sinkronkan role di tabel staff_attendance_members jika user ada di sana
+    await adminClient
+      .from('staff_attendance_members')
+      .update({ role: newRole })
+      .eq('user_id', targetUserId);
+
+    return {
+      success: true,
+      message: `Role akun berhasil diubah menjadi ${newRole.toUpperCase()}.`
+    };
+  } catch (err: any) {
+    return {
+      success: false,
+      message: err.message || 'Gagal memperbarui role akun.'
+    };
+  }
+}
