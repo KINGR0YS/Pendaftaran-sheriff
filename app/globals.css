@@ -16,8 +16,8 @@
   --color-error: #ef4444;
   --color-warning: #f59e0b;
   --color-info: #3b82f6;
-  --font-header: 'Outfit', sans-serif;
-  --font-body: 'Inter', sans-serif;
+  --font-header: var(--font-header, 'Outfit', sans-serif);
+  --font-body: var(--font-body, 'Inter', sans-serif);
 }
 
 /* ==========================================
@@ -32,11 +32,14 @@
 html {
   scroll-behavior: smooth;
   cursor: auto !important;
+  font-size: 16px;
 }
 
 body {
   cursor: auto !important;
   font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   background-color: var(--color-bg-deep);
   background-image:
     radial-gradient(at 0% 0%, rgba(212, 175, 55, 0.03) 0px, transparent 50%),
@@ -73,6 +76,15 @@ body {
 
 
 /* ==========================================
+   TYPOGRAPHY
+   ========================================== */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-header);
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+/* ==========================================
    GLASS CARD
    ========================================== */
 .glass-card {
@@ -96,11 +108,12 @@ body {
   padding: 0.6rem 1.4rem;
   border-radius: 8px;
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   cursor: pointer;
   border: none;
   transition: all 0.2s ease;
   font-family: var(--font-body);
+  letter-spacing: 0.3px;
 }
 .btn-primary {
   background: linear-gradient(135deg, var(--color-gold), var(--color-gold-dark));
@@ -146,8 +159,9 @@ body {
 .form-group { display: flex; flex-direction: column; gap: 0.4rem; }
 .form-group label {
   font-weight: 500;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   color: var(--color-text-muted);
+  font-family: var(--font-body);
 }
 .form-group input,
 .form-group select,
@@ -157,7 +171,7 @@ body {
   border-radius: 8px;
   padding: 0.65rem 0.85rem;
   color: var(--color-text-primary);
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   font-family: var(--font-body);
   transition: border-color 0.2s;
 }
@@ -229,7 +243,8 @@ body {
   gap: 0.6rem;
   padding: 0.75rem 1rem;
   border-radius: 10px;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
+  font-family: var(--font-body);
   animation: slideIn 0.3s ease;
   min-width: 300px;
   max-width: 420px;
@@ -281,6 +296,8 @@ body {
 }
 .modal-header h3 {
   font-family: var(--font-header);
+  font-size: 1.25rem;
+  font-weight: 700;
   color: var(--color-gold);
 }
 .modal-close {
@@ -351,8 +368,9 @@ body {
 }
 .sidebar-user-info { min-width: 0; flex: 1; }
 .sidebar-username {
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   font-weight: 600;
+  font-family: var(--font-body);
   color: var(--color-text-primary);
   white-space: nowrap;
   overflow: hidden;
@@ -366,8 +384,9 @@ body {
   gap: 0.3rem;
   padding: 0.15rem 0.55rem;
   border-radius: 20px;
-  font-size: 0.65rem;
+  font-size: 0.7rem;
   font-weight: 700;
+  font-family: var(--font-body);
   letter-spacing: 1px;
 }
 
@@ -391,10 +410,11 @@ body {
 }
 .sidebar-group-label {
   display: block;
-  font-size: 0.6rem;
+  font-size: 0.7rem;
   font-weight: 700;
+  font-family: var(--font-body);
   letter-spacing: 1.5px;
-  color: rgba(255,255,255,0.2);
+  color: rgba(255,255,255,0.3);
   padding: 0.2rem 1rem 0.4rem;
   text-transform: uppercase;
 }
@@ -410,8 +430,8 @@ body {
   gap: 0.65rem;
   padding: 0.6rem 0.8rem;
   border-radius: 8px;
-  font-size: 0.82rem;
-  color: rgba(255,255,255,0.45);
+  font-size: 0.9rem;
+  color: rgba(255,255,255,0.6);
   background: transparent;
   border: none;
   cursor: pointer;
@@ -507,7 +527,8 @@ body {
 .roster-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
+  font-family: var(--font-body);
 }
 .roster-table thead {
   background: rgba(15, 23, 42, 0.8);
@@ -517,7 +538,8 @@ body {
   padding: 0.75rem 1rem;
   color: var(--color-text-muted);
   font-weight: 700;
-  font-size: 0.7rem;
+  font-size: 0.75rem;
+  font-family: var(--font-body);
   text-transform: uppercase;
   letter-spacing: 0.8px;
   border-bottom: 1px solid var(--color-border-custom);
@@ -569,15 +591,17 @@ body {
 .badge {
   background: var(--color-error);
   color: #fff;
-  font-size: 0.65rem;
+  font-size: 0.7rem;
   font-weight: 700;
+  font-family: var(--font-body);
   padding: 0.15rem 0.4rem;
   border-radius: 10px;
   margin-left: 0.3rem;
 }
 .badge-status {
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   font-weight: 600;
+  font-family: var(--font-body);
   padding: 0.15rem 0.5rem;
   border-radius: 6px;
   text-transform: uppercase;
@@ -611,8 +635,9 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   font-weight: 700;
+  font-family: var(--font-body);
   background: rgba(255, 255, 255, 0.05);
   color: var(--color-text-muted);
   border: 2px solid var(--color-border-custom);
@@ -632,8 +657,9 @@ body {
 .step-label {
   position: absolute;
   bottom: -1.5rem;
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   font-weight: 500;
+  font-family: var(--font-body);
   white-space: nowrap;
   color: var(--color-text-muted);
 }
@@ -683,14 +709,16 @@ body {
 .nav-title-group { display: flex; flex-direction: column; }
 .nav-logo-text {
   font-family: var(--font-header);
-  font-size: 1.1rem;
+  font-size: 1.25rem;
   font-weight: 800;
   color: var(--color-gold);
   line-height: 1.1;
   letter-spacing: 1px;
 }
 .nav-subtitle {
-  font-size: 0.6rem;
+  font-family: var(--font-header);
+  font-size: 0.65rem;
+  font-weight: 600;
   color: var(--color-text-muted);
   letter-spacing: 2px;
   text-transform: uppercase;
@@ -706,7 +734,8 @@ body {
   gap: 0.35rem;
   padding: 0.45rem 0.85rem;
   border-radius: 8px;
-  font-size: 0.8rem;
+  font-size: 0.9rem;
+  font-family: var(--font-body);
   font-weight: 500;
   color: var(--color-text-secondary);
   text-decoration: none;
@@ -726,7 +755,8 @@ body {
   border-radius: 20px;
   background: rgba(16, 185, 129, 0.08);
   border: 1px solid rgba(16, 185, 129, 0.2);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
+  font-family: var(--font-body);
   font-weight: 600;
   letter-spacing: 0.5px;
 }
@@ -756,7 +786,7 @@ body {
    ========================================== */
 .section-title {
   font-family: var(--font-header);
-  font-size: 1.8rem;
+  font-size: 2rem;
   font-weight: 700;
   color: var(--color-text-primary);
   text-align: center;
@@ -769,6 +799,8 @@ body {
 .section-subtitle {
   text-align: center;
   color: var(--color-text-secondary);
+  font-family: var(--font-body);
+  font-size: 1rem;
   max-width: 600px;
   margin: 0 auto;
 }
@@ -804,8 +836,8 @@ body {
   margin: 0 auto 0.75rem;
   color: var(--color-gold);
 }
-.value-card h3 { font-family: var(--font-header); font-size: 1rem; margin-bottom: 0.4rem; }
-.value-card p { font-size: 0.8rem; color: var(--color-text-secondary); line-height: 1.5; }
+.value-card h3 { font-family: var(--font-header); font-size: 1.1rem; margin-bottom: 0.4rem; }
+.value-card p { font-family: var(--font-body); font-size: 0.9rem; color: var(--color-text-secondary); line-height: 1.5; }
 
 /* ==========================================
    DIVISIONS GRID
@@ -832,15 +864,17 @@ body {
   border-radius: 6px;
   background: var(--color-gold-glow);
   color: var(--color-gold);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
+  font-family: var(--font-body);
   font-weight: 700;
   letter-spacing: 1px;
   margin-bottom: 0.5rem;
 }
-.division-card h3 { font-family: var(--font-header); font-size: 1.1rem; margin-bottom: 0.5rem; }
+.division-card h3 { font-family: var(--font-header); font-size: 1.2rem; margin-bottom: 0.5rem; }
 .division-card ul { list-style: none; padding: 0; }
 .division-card li {
-  font-size: 0.8rem;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
   color: var(--color-text-secondary);
   padding: 0.2rem 0;
   padding-left: 1rem;
@@ -866,13 +900,14 @@ body {
   background: var(--color-gold);
   color: #000;
   font-weight: 700;
-  font-size: 0.85rem;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
   display: flex;
   align-items: center;
   justify-content: center;
 }
-.timeline-header h3 { font-family: var(--font-header); font-size: 1rem; margin-bottom: 0.2rem; }
-.timeline-content p { font-size: 0.8rem; color: var(--color-text-secondary); }
+.timeline-header h3 { font-family: var(--font-header); font-size: 1.1rem; margin-bottom: 0.2rem; }
+.timeline-content p { font-family: var(--font-body); font-size: 0.9rem; color: var(--color-text-secondary); }
 
 /* ==========================================
    REQUIREMENTS
@@ -888,7 +923,7 @@ body {
   border-radius: 8px;
 }
 .req-item svg { min-width: 18px; color: var(--color-gold); margin-top: 2px; }
-.req-item p { font-size: 0.85rem; color: var(--color-text-secondary); }
+.req-item p { font-family: var(--font-body); font-size: 0.9rem; color: var(--color-text-secondary); }
 
 /* ==========================================
    APP CARD
@@ -909,9 +944,9 @@ body {
   background: var(--color-bg-card-hover);
 }
 .app-name-row { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.25rem; }
-.app-name-row h3 { font-family: var(--font-header); font-size: 1rem; font-weight: 700; }
-.app-ooc-sub { font-size: 0.8rem; color: var(--color-text-secondary); margin-bottom: 0.3rem; }
-.app-details-quick { display: flex; gap: 1rem; font-size: 0.75rem; color: var(--color-text-muted); }
+.app-name-row h3 { font-family: var(--font-header); font-size: 1.1rem; font-weight: 700; }
+.app-ooc-sub { font-family: var(--font-body); font-size: 0.85rem; color: var(--color-text-secondary); margin-bottom: 0.3rem; }
+.app-details-quick { display: flex; gap: 1rem; font-family: var(--font-body); font-size: 0.8rem; color: var(--color-text-muted); }
 .app-details-quick span { display: flex; align-items: center; gap: 0.3rem; }
 .app-card-actions { display: flex; gap: 0.5rem; }
 
@@ -921,7 +956,7 @@ body {
 .modal-detail-section { margin-bottom: 1.5rem; }
 .modal-detail-section h4 {
   font-family: var(--font-header);
-  font-size: 1rem;
+  font-size: 1.1rem;
   color: var(--color-gold);
   margin-bottom: 0.75rem;
   padding-bottom: 0.5rem;
@@ -939,13 +974,15 @@ body {
   gap: 0.15rem;
 }
 .detail-label-value span:first-child {
-  font-size: 0.7rem;
+  font-family: var(--font-body);
+  font-size: 0.75rem;
   color: var(--color-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 .detail-label-value span:last-child {
-  font-size: 0.85rem;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
   color: var(--color-text-secondary);
 }
 .modal-question-box {
@@ -956,13 +993,15 @@ body {
   margin-bottom: 0.5rem;
 }
 .modal-question-box p:first-child {
-  font-size: 0.75rem;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
   color: var(--color-text-muted);
   font-weight: 600;
   margin-bottom: 0.25rem;
 }
 .modal-question-box p:last-child {
-  font-size: 0.85rem;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
   color: var(--color-text-secondary);
 }
 
@@ -991,7 +1030,7 @@ body {
 }
 .footer-left h4 {
   font-family: var(--font-header);
-  font-size: 1.1rem;
+  font-size: 1.2rem;
   color: var(--color-text-primary);
   margin: 0;
   text-transform: uppercase;
@@ -999,8 +1038,9 @@ body {
   line-height: 1.2;
 }
 .footer-left p {
+  font-family: var(--font-body);
   color: var(--color-text-muted);
-  font-size: 0.8rem;
+  font-size: 0.9rem;
   margin: 0;
   line-height: 1.2;
 }
@@ -1010,7 +1050,7 @@ body {
 .footer-credit-text {
   margin: 0;
   color: var(--color-text-muted);
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   font-family: var(--font-header);
   font-weight: 600;
   letter-spacing: 1.5px;
@@ -1024,8 +1064,9 @@ body {
   gap: 0.2rem;
 }
 .footer-right p {
+  font-family: var(--font-body);
   color: var(--color-text-muted);
-  font-size: 0.8rem;
+  font-size: 0.9rem;
   margin: 0;
   line-height: 1.2;
 }
@@ -1108,7 +1149,7 @@ body {
 .login-header { text-align: center; margin-bottom: 1.5rem; }
 .login-header h2 {
   font-family: var(--font-header);
-  font-size: 1.5rem;
+  font-size: 1.75rem;
   font-weight: 800;
   background: linear-gradient(135deg, #ffffff 0%, rgba(212,175,55,0.9) 100%);
   -webkit-background-clip: text;
@@ -1116,7 +1157,7 @@ body {
   background-clip: text;
   margin-bottom: 0.5rem;
 }
-.login-header p { font-size: 0.8rem; color: var(--color-text-secondary); }
+.login-header p { font-family: var(--font-body); font-size: 0.9rem; color: var(--color-text-secondary); }
 
 /* ==========================================
    CONFIG BOX
@@ -1124,7 +1165,7 @@ body {
 .config-form-box { padding: 1.5rem; }
 .config-form-box h3 {
   font-family: var(--font-header);
-  font-size: 1.1rem;
+  font-size: 1.2rem;
   font-weight: 700;
   background: linear-gradient(135deg, #ffffff 0%, rgba(212,175,55,0.9) 100%);
   -webkit-background-clip: text;
@@ -1133,7 +1174,8 @@ body {
   margin-bottom: 0.5rem;
 }
 .config-desc {
-  font-size: 0.8rem;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
   color: var(--color-text-secondary);
   margin-bottom: 1rem;
 }
@@ -1172,7 +1214,8 @@ body {
   gap: 0.5rem;
 }
 .log-item {
-  font-size: 0.8rem;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
   color: var(--color-text-secondary);
   padding: 0.4rem 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.03);
@@ -1229,7 +1272,7 @@ body {
 .card-icon.blue   { background: rgba(59, 130, 246, 0.1); color: var(--color-info); }
 .card-details h3 {
   font-family: var(--font-header);
-  font-size: 2rem;
+  font-size: 2.25rem;
   font-weight: 800;
   line-height: 1;
   margin-bottom: 0.2rem;
@@ -1238,7 +1281,7 @@ body {
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
-.card-details p { font-size: 0.76rem; color: rgba(255,255,255,0.35); letter-spacing: 0.3px; }
+.card-details p { font-family: var(--font-body); font-size: 0.85rem; color: rgba(255,255,255,0.45); letter-spacing: 0.3px; }
 
 .dashboard-sections-split {
   display: grid;
@@ -1249,18 +1292,18 @@ body {
 .section-card { padding: 1.5rem; }
 .section-card h3 {
   font-family: var(--font-header);
-  font-size: 0.85rem;
+  font-size: 0.95rem;
   font-weight: 700;
   margin-bottom: 1rem;
   color: rgba(255,255,255,0.5);
   letter-spacing: 1px;
   text-transform: uppercase;
 }
-.info-content-box p { font-size: 0.82rem; color: var(--color-text-secondary); margin-bottom: 0.5rem; }
+.info-content-box p { font-family: var(--font-body); font-size: 0.9rem; color: var(--color-text-secondary); margin-bottom: 0.5rem; }
 
 .dashboard-title {
   font-family: var(--font-header);
-  font-size: 1.5rem;
+  font-size: 1.75rem;
   font-weight: 800;
   margin-bottom: 1.25rem;
   background: linear-gradient(135deg, #ffffff 0%, rgba(212,175,55,0.9) 100%);
@@ -1269,7 +1312,8 @@ body {
   background-clip: text;
 }
 .dashboard-subtitle {
-  font-size: 0.85rem;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
   color: var(--color-text-secondary);
   margin-bottom: 1rem;
 }
@@ -1292,7 +1336,8 @@ body {
   border-radius: 8px;
   padding: 0.45rem 0.75rem;
   color: var(--color-text-primary);
-  font-size: 0.8rem;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
 }
 .search-input-wrapper {
   position: relative;
@@ -1314,7 +1359,8 @@ body {
   border: 1px solid var(--color-border-custom);
   border-radius: 8px;
   color: var(--color-text-primary);
-  font-size: 0.8rem;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
 }
 .search-input-wrapper input:focus {
   outline: none;
@@ -1334,11 +1380,12 @@ body {
   border: 1px solid rgba(239, 68, 68, 0.2);
 }
 .decision-box h4 {
-  font-size: 0.85rem;
+  font-family: var(--font-header);
+  font-size: 0.95rem;
   color: var(--color-error);
   margin-bottom: 0.25rem;
 }
-.decision-box p { font-size: 0.8rem; color: var(--color-text-secondary); }
+.decision-box p { font-family: var(--font-body); font-size: 0.9rem; color: var(--color-text-secondary); }
 
 /* ==========================================
    ANIMATIONS & TRANSITIONS (OPTIMIZED)

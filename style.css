@@ -30,6 +30,8 @@
   /* Fonts */
   --font-header: 'Outfit', sans-serif;
   --font-body: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   
   /* Layout Scaling */
   --base-font-size: 16px;
@@ -51,11 +53,13 @@
 
 html {
   scroll-behavior: smooth;
-  font-size: var(--base-font-size);
+  font-size: 16px;
 }
 
 body {
   font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   background-color: var(--color-bg-deep);
   background-image: 
     radial-gradient(at 0% 0%, rgba(212, 175, 55, 0.03) 0px, transparent 50%),
@@ -184,7 +188,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .nav-subtitle {
-  font-size: 0.6rem;
+  font-size: 0.65rem;
   font-weight: 700;
   font-family: var(--font-header);
   letter-spacing: 1.5px;
@@ -200,9 +204,9 @@ h1, h2, h3, h4, h5, h6 {
 .nav-link {
   color: var(--color-text-secondary);
   text-decoration: none;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   font-weight: 500;
-  font-family: var(--font-header);
+  font-family: var(--font-body);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   padding: 0.4rem 0.5rem 0.6rem 0.5rem;
@@ -254,8 +258,8 @@ h1, h2, h3, h4, h5, h6 {
   padding: 0.35rem 0.8rem;
   border-radius: 50px;
   font-weight: 600;
-  font-size: 0.8rem;
-  font-family: var(--font-header);
+  font-size: 0.85rem;
+  font-family: var(--font-body);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   cursor: pointer;
@@ -276,9 +280,9 @@ h1, h2, h3, h4, h5, h6 {
   gap: 0.4rem;
   padding: 0.3rem 0.7rem;
   border-radius: 50px;
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   font-weight: 700;
-  font-family: var(--font-header);
+  font-family: var(--font-body);
   letter-spacing: 0.75px;
   background-color: rgba(16, 185, 129, 0.08);
   border: 1px solid rgba(16, 185, 129, 0.15);
@@ -423,7 +427,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .hero-badge {
   color: var(--color-gold);
-  font-size: 0.95rem;
+  font-size: 1rem;
   font-weight: 700;
   font-family: var(--font-header);
   letter-spacing: 4px;
@@ -432,7 +436,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .hero-title {
-  font-size: 3.8rem;
+  font-size: 4rem;
   font-weight: 800;
   line-height: 1.1;
   margin-bottom: 1.5rem;
@@ -443,7 +447,8 @@ h1, h2, h3, h4, h5, h6 {
 
 .hero-desc {
   color: var(--color-text-secondary);
-  font-size: 1.05rem;
+  font-family: var(--font-body);
+  font-size: 1.1rem;
   margin-bottom: 2rem;
   font-weight: 400;
 }
@@ -494,12 +499,14 @@ h1, h2, h3, h4, h5, h6 {
 .stat-icon-wrapper.yellow { background: rgba(245, 158, 11, 0.1); color: var(--color-warning); }
 
 .stat-info h3 {
-  font-size: 2rem;
+  font-family: var(--font-header);
+  font-size: 2.25rem;
   line-height: 1.2;
 }
 .stat-info p {
+  font-family: var(--font-body);
   color: var(--color-text-secondary);
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -509,13 +516,16 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .section-title {
+  font-family: var(--font-header);
   text-align: center;
-  font-size: 2.2rem;
+  font-size: 2.5rem;
   margin-bottom: 0.5rem;
 }
 
 .section-subtitle {
+  font-family: var(--font-body);
   text-align: center;
+  font-size: 1.1rem;
   color: var(--color-text-secondary);
   margin-bottom: 3rem;
 }
@@ -568,7 +578,8 @@ h1, h2, h3, h4, h5, h6 {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  font-size: 0.7rem;
+  font-family: var(--font-body);
+  font-size: 0.75rem;
   font-weight: 700;
   color: var(--color-gold);
   background-color: rgba(212, 175, 55, 0.06);
@@ -581,13 +592,15 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .division-card h3 {
-  font-size: 1.4rem;
+  font-family: var(--font-header);
+  font-size: 1.5rem;
   margin-bottom: 0.75rem;
 }
 
 .division-card p {
+  font-family: var(--font-body);
   color: var(--color-text-secondary);
-  font-size: 0.9rem;
+  font-size: 0.95rem;
 }
 
 .division-card ul {
@@ -600,7 +613,8 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .division-card li {
-  font-size: 0.85rem;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
   color: var(--color-text-secondary);
   line-height: 1.5;
   text-align: left;
@@ -633,12 +647,15 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .form-header h2 {
-  font-size: 2.2rem;
+  font-family: var(--font-header);
+  font-size: 2.5rem;
   color: var(--color-text-primary);
   margin-bottom: 0.5rem;
 }
 
 .form-header p {
+  font-family: var(--font-body);
+  font-size: 1.1rem;
   color: var(--color-text-secondary);
 }
 
@@ -656,10 +673,11 @@ h1, h2, h3, h4, h5, h6 {
   flex-direction: column;
   align-items: center;
   position: relative;
+  font-family: var(--font-body);
   font-weight: 700;
-  font-size: 0.95rem;
-  width: 32px;
-  height: 32px;
+  font-size: 1rem;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   border: 2px solid var(--color-text-muted);
   color: var(--color-text-muted);
@@ -685,9 +703,9 @@ h1, h2, h3, h4, h5, h6 {
 
 .step-label {
   position: absolute;
-  top: 40px;
+  top: 45px;
   font-family: var(--font-header);
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   letter-spacing: 0.5px;
   white-space: nowrap;
   color: var(--color-text-secondary);
@@ -722,7 +740,8 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .step-title {
-  font-size: 1.3rem;
+  font-family: var(--font-header);
+  font-size: 1.4rem;
   margin-bottom: 2rem;
   border-left: 3px solid var(--color-gold);
   padding-left: 0.75rem;
@@ -747,7 +766,7 @@ h1, h2, h3, h4, h5, h6 {
 
 label {
   font-family: var(--font-header);
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   font-weight: 600;
   text-transform: uppercase;
   color: var(--color-text-secondary);
@@ -771,7 +790,7 @@ select {
   padding: 0.85rem 1.1rem;
   color: var(--color-text-primary);
   font-family: var(--font-body);
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   outline: none;
   width: 100%;
   transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
@@ -833,12 +852,14 @@ textarea {
 }
 
 .login-header h2 {
-  font-size: 1.8rem;
+  font-family: var(--font-header);
+  font-size: 2rem;
   margin-bottom: 0.5rem;
 }
 .login-header p {
+  font-family: var(--font-body);
+  font-size: 0.95rem;
   color: var(--color-text-secondary);
-  font-size: 0.85rem;
 }
 
 .input-icon-wrapper {
@@ -938,14 +959,17 @@ textarea {
 }
 
 .profile-info h4 {
-  font-size: 0.95rem;
+  font-family: var(--font-header);
+  font-size: 1rem;
+  color: var(--color-text-primary);
   max-width: 160px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .profile-info span {
-  font-size: 0.75rem;
+  font-family: var(--font-body);
+  font-size: 0.8rem;
   color: var(--color-gold);
   font-weight: 600;
   text-transform: uppercase;
@@ -961,9 +985,9 @@ textarea {
   background: none;
   border: none;
   color: var(--color-text-secondary);
-  font-family: var(--font-header);
+  font-family: var(--font-body);
   font-weight: 600;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   text-transform: uppercase;
   text-align: left;
   padding: 0.75rem 1rem;
@@ -1009,6 +1033,7 @@ textarea {
 }
 
 .dashboard-title {
+  font-family: var(--font-header);
   font-size: 1.8rem;
   margin-bottom: 1.5rem;
   display: flex;
@@ -1017,6 +1042,8 @@ textarea {
 }
 
 .dashboard-subtitle {
+  font-family: var(--font-body);
+  font-size: 0.95rem;
   color: var(--color-text-secondary);
   margin-bottom: 2rem;
   margin-top: -1rem;
@@ -1071,7 +1098,8 @@ textarea {
 }
 .card-details p {
   color: var(--color-text-secondary);
-  font-size: 0.8rem;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
   font-weight: 500;
 }
 
