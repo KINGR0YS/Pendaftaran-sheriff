@@ -701,7 +701,7 @@ ALTER TABLE staff_attendance DISABLE ROW LEVEL SECURITY;`}
 
         {/* MODAL TAMBAH ANGGOTA STAFF */}
         <Modal open={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} title="Tambah Anggota Absensi Staff">
-          <form className="modal-form">
+          <form className="modal-form" onSubmit={handleAddMemberSubmit}>
             <p className="modal-form-desc">
               Pilih akun terdaftar dari sistem yang ingin dimasukkan ke dalam daftar absensi Staff (Pelatih & Pengawas).
             </p>
