@@ -634,9 +634,9 @@ ALTER TABLE staff_attendance DISABLE ROW LEVEL SECURITY;`}
                         <tr key={member.user_id}>
                           <td className="member-name-cell-staff">
                             {member.username} 
-                            <span className={`badge-role ${member.role === 'superadmin' ? 'superadmin' : 'dismag'}`}>
-                              {member.role === 'superadmin' ? 'Superadmin' : 'Dismag'}
-                            </span>
+                            {member.role === 'superadmin' && (
+                              <span className="badge-role superadmin">Superadmin</span>
+                            )}
                           </td>
                           {datesList.map((date, idx) => {
                             const dateStr = date.toISOString().split('T')[0];
