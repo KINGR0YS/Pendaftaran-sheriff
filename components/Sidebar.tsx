@@ -58,6 +58,7 @@ export default function Sidebar() {
 
   const isTrainer = role === 'pelatih';
   const isSuperAdmin = role === 'superadmin';
+  const isPimpinan = role === 'pimpinan';
   
   let RoleIcon = Shield;
   let roleLabel = 'DISMAG';
@@ -77,9 +78,15 @@ export default function Sidebar() {
     roleBg = 'rgba(239,68,68,0.12)';
     roleColor = '#f87171';
     roleBorder = 'rgba(239,68,68,0.3)';
+  } else if (isPimpinan) {
+    RoleIcon = Shield;
+    roleLabel = 'PIMPINAN';
+    roleBg = 'rgba(16, 185, 129, 0.12)';
+    roleColor = '#34d399';
+    roleBorder = 'rgba(16, 185, 129, 0.3)';
   }
 
-  const isDismagOrSuperAdmin = role === 'dismag' || role === 'superadmin';
+  const isDismagOrSuperAdmin = role === 'dismag' || role === 'superadmin' || role === 'pimpinan';
 
   const groups: SidebarGroup[] = [
     { label: 'ADMIN PANEL', items: adminItems },

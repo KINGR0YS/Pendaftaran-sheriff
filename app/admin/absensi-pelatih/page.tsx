@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/components/Toast';
 import { Search, Inbox, Calendar, UserPlus, Trash2, ShieldAlert, Check } from 'lucide-react';
@@ -9,6 +9,8 @@ import RoleGuard from '@/components/RoleGuard';
 import { listRegisteredAccounts, addStaffMember, removeStaffMember } from './actions';
 import { logActivity } from '@/lib/activity-log';
 import { getDateSetting, updateSystemSetting } from '@/lib/settings';
+import useDebounce from '@/app/hooks/useDebounce';
+import { TableSkeleton } from '@/components/Skeleton';
 
 export default function AbsensiPelatihPage() {
   const { showToast } = useToast();
@@ -16,6 +18,7 @@ export default function AbsensiPelatihPage() {
   // States
   const [staffRoster, setStaffRoster] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearch = useDebounce(searchQuery, 300);
   const [isLoading, setIsLoading] = useState(true);
   const [dbError, setDbError] = useState<string | null>(null);
   const [currentUserRole, setCurrentUserRole] = useState<string>('pelatih');
@@ -336,13 +339,15 @@ export default function AbsensiPelatihPage() {
     return total;
   };
 
-  const filtered = staffRoster.filter(member =>
-    member.username?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filtered = useMemo(() => {
+    return staffRoster.filter(member =>
+      member.username?.toLowerCase().includes(debouncedSearch.toLowerCase())
+    );
+  }, [staffRoster, debouncedSearch]);
 
   // Pisahkan Pelatih dan Pengawas
-  const pelatihList = filtered.filter(m => m.role === 'pelatih');
-  const pengawasList = filtered.filter(m => m.role === 'dismag' || m.role === 'superadmin');
+  const pelatihList = useMemo(() => filtered.filter(m => m.role === 'pelatih'), [filtered]);
+  const pengawasList = useMemo(() => filtered.filter(m => m.role === 'dismag' || m.role === 'superadmin'), [filtered]);
 
   if (dbError) {
     return (
@@ -400,9 +405,11 @@ ALTER TABLE staff_attendance DISABLE ROW LEVEL SECURITY;`}
               {isLoading ? '...' : `${staffRoster.length} Staff`}
             </span>
           </h2>
-          <button className="btn btn-sm btn-success" onClick={handleOpenAddModal}>
-            <UserPlus size={14} /> Tambah Anggota Absen
-          </button>
+          {currentUserRole !== 'pimpinan' && (
+            <button className="btn btn-sm btn-success" onClick={handleOpenAddModal}>
+              <UserPlus size={14} /> Tambah Anggota Absen
+            </button>
+          )}
         </div>
 
         {/* Filter and Config Bar */}
@@ -418,6 +425,9 @@ ALTER TABLE staff_attendance DISABLE ROW LEVEL SECURITY;`}
                 const newDate = e.target.value;
                 if (currentUserRole === 'pelatih') {
                   showToast('Hanya Dismag & Superadmin yang dapat mengubah tanggal mulai.', 'error');
+                  return;
+                }
+                if (currentUserRole === 'pimpinan') {
                   return;
                 }
                 setPendingDate(newDate);
@@ -491,15 +501,14 @@ ALTER TABLE staff_attendance DISABLE ROW LEVEL SECURITY;`}
         </div>
 
         {!startDate || isLoading ? (
-          <div className="loading-container">
-            <div className="loading-spinner" />
-            <p>Memuat data absensi...</p>
-          </div>
+          <TableSkeleton rows={5} columns={8} />
         ) : staffRoster.length === 0 ? (
           <div className="empty-state">
-            <Inbox />
-            <h3>Belum Ada Anggota Roster Absensi</h3>
-            <p>Silakan tambah anggota dari akun terdaftar menggunakan tombol di atas.</p>
+            <div className="empty-state-icon">
+              <Inbox size={24} color="var(--color-text-muted)" />
+            </div>
+            <h3 className="empty-state-title">Belum Ada Anggota Roster Absensi</h3>
+            <p className="empty-state-description">Silakan tambah anggota dari akun terdaftar menggunakan tombol di atas.</p>
           </div>
         ) : (
           <div className="attendance-tables-container">
@@ -549,6 +558,7 @@ ALTER TABLE staff_attendance DISABLE ROW LEVEL SECURITY;`}
                                   value={currentVal}
                                   onChange={(e) => handleSaveAttendance(member.user_id, dateStr, e.target.value)}
                                   className={getSelectClass(currentVal)}
+                                  disabled={currentUserRole === 'pimpinan'}
                                 >
                                   <option value="">-</option>
                                   <option value="HADIR">HADIR</option>
@@ -566,13 +576,15 @@ ALTER TABLE staff_attendance DISABLE ROW LEVEL SECURITY;`}
                             <td className="attendance-gaji-value">{formatRupiah(calculateStaffSalary(member.user_id, member.role))}</td>
                           )}
                           <td className="attendance-aksi-cell">
-                            <button
-                              onClick={() => handleRemoveMember(member.user_id, member.username)}
-                              className="icon-btn delete-user"
-                              title="Hapus dari daftar absensi"
-                            >
-                              <Trash2 size={15} />
-                            </button>
+                            {currentUserRole !== 'pimpinan' && (
+                              <button
+                                onClick={() => handleRemoveMember(member.user_id, member.username)}
+                                className="icon-btn delete-user"
+                                title="Hapus dari daftar absensi"
+                              >
+                                <Trash2 size={15} />
+                              </button>
+                            )}
                           </td>
                         </tr>
                       ))}
@@ -647,6 +659,7 @@ ALTER TABLE staff_attendance DISABLE ROW LEVEL SECURITY;`}
                                   value={currentVal}
                                   onChange={(e) => handleSaveAttendance(member.user_id, dateStr, e.target.value)}
                                   className={getSelectClass(currentVal)}
+                                  disabled={currentUserRole === 'pimpinan'}
                                 >
                                   <option value="">-</option>
                                   <option value="HADIR">HADIR</option>
@@ -664,13 +677,15 @@ ALTER TABLE staff_attendance DISABLE ROW LEVEL SECURITY;`}
                             <td className="attendance-gaji-value">{formatRupiah(calculateStaffSalary(member.user_id, member.role))}</td>
                           )}
                           <td className="attendance-aksi-cell">
-                            <button
-                              onClick={() => handleRemoveMember(member.user_id, member.username)}
-                              className="icon-btn delete-user"
-                              title="Hapus dari daftar absensi"
-                            >
-                              <Trash2 size={15} />
-                            </button>
+                            {currentUserRole !== 'pimpinan' && (
+                              <button
+                                onClick={() => handleRemoveMember(member.user_id, member.username)}
+                                className="icon-btn delete-user"
+                                title="Hapus dari daftar absensi"
+                              >
+                                <Trash2 size={15} />
+                              </button>
+                            )}
                           </td>
                         </tr>
                       ))}

@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase';
 import { MailWarning, CheckCircle2, XCircle, Users, Inbox } from 'lucide-react';
 import RoleGuard from '@/components/RoleGuard';
 import { getSystemSettings } from '@/lib/settings';
+import { CardSkeleton } from '@/components/Skeleton';
 
 
 export default function AdminStatsPage() {
@@ -77,11 +78,12 @@ export default function AdminStatsPage() {
         <h2 className="dashboard-title">Ringkasan Operasional</h2>
         <div className="dashboard-stats-grid">
           {[1, 2, 3, 4].map(i => (
-            <div key={i} className="skeleton skeleton-row" style={{ height: 90 }} />
+            <CardSkeleton key={i} />
           ))}
         </div>
-        <div style={{ marginTop: '1.5rem' }}>
-          <div className="skeleton skeleton-row" style={{ height: 200 }} />
+        <div className="dashboard-sections-split mt-6">
+          <CardSkeleton />
+          <CardSkeleton />
         </div>
       </div>
     );
@@ -93,39 +95,55 @@ export default function AdminStatsPage() {
         <h2 className="dashboard-title">Ringkasan Operasional</h2>
 
         <div className="dashboard-stats-grid">
-          <div className="dashboard-stat-card">
-            <div className="card-icon yellow"><MailWarning size={22} /></div>
-            <div className="card-details">
-              <h3>{pendingCount}</h3>
-              <p>Pendaftaran Butuh Review</p>
+          <div className="stat-card">
+            <div className="flex items-center gap-4">
+              <div className="stat-card-icon" style={{ background: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b' }}>
+                <MailWarning size={24} />
+              </div>
+              <div>
+                <div className="stat-card-value">{pendingCount}</div>
+                <div className="stat-card-label">Butuh Review</div>
+              </div>
             </div>
           </div>
-          <div className="dashboard-stat-card">
-            <div className="card-icon green"><CheckCircle2 size={22} /></div>
-            <div className="card-details">
-              <h3>{acceptedCount}</h3>
-              <p>Diterima Angkatan Ini</p>
+          <div className="stat-card">
+            <div className="flex items-center gap-4">
+              <div className="stat-card-icon" style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10b981' }}>
+                <CheckCircle2 size={24} />
+              </div>
+              <div>
+                <div className="stat-card-value">{acceptedCount}</div>
+                <div className="stat-card-label">Diterima Angkatan Ini</div>
+              </div>
             </div>
           </div>
-          <div className="dashboard-stat-card">
-            <div className="card-icon red"><XCircle size={22} /></div>
-            <div className="card-details">
-              <h3>{rejectedCount}</h3>
-              <p>Formulir Ditolak</p>
+          <div className="stat-card">
+            <div className="flex items-center gap-4">
+              <div className="stat-card-icon" style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }}>
+                <XCircle size={24} />
+              </div>
+              <div>
+                <div className="stat-card-value">{rejectedCount}</div>
+                <div className="stat-card-label">Formulir Ditolak</div>
+              </div>
             </div>
           </div>
-          <div className="dashboard-stat-card">
-            <div className="card-icon blue"><Users size={22} /></div>
-            <div className="card-details">
-              <h3>{rosterCount}</h3>
-              <p>Total Anggota Diterima</p>
+          <div className="stat-card">
+            <div className="flex items-center gap-4">
+              <div className="stat-card-icon" style={{ background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6' }}>
+                <Users size={24} />
+              </div>
+              <div>
+                <div className="stat-card-value">{rosterCount}</div>
+                <div className="stat-card-label">Total Anggota</div>
+              </div>
             </div>
           </div>
         </div>
 
         <div className="dashboard-sections-split">
-          <div className="glass-card section-card">
-            <h3>Aktivitas Terbaru</h3>
+          <div className="stat-card">
+            <h3 style={{ fontFamily: 'var(--font-header)', fontSize: '1rem', marginBottom: '1rem', color: 'var(--color-text-primary)' }}>Aktivitas Terbaru</h3>
             <div className="activity-log">
               {activityLogs.length === 0 ? (
                 <div className="empty-state">
@@ -143,8 +161,8 @@ export default function AdminStatsPage() {
             </div>
           </div>
 
-          <div className="glass-card section-card">
-            <h3>Informasi Sistem Database</h3>
+          <div className="stat-card">
+            <h3 style={{ fontFamily: 'var(--font-header)', fontSize: '1rem', marginBottom: '1rem', color: 'var(--color-text-primary)' }}>Informasi Sistem</h3>
             <div className="info-content-box">
               <p>Situs web terhubung ke: <strong style={{ color: 'var(--color-success)' }}>cloud database</strong></p>
               <div style={{ marginTop: '1rem', padding: '0.75rem', background: 'rgba(255,255,255,0.02)', borderRadius: 8, border: '1px solid var(--color-border-custom)' }}>

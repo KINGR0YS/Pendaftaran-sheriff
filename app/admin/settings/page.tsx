@@ -22,7 +22,7 @@ export default function SettingsPage() {
   const [newEmail, setNewEmail] = useState('');
   const [newUsername, setNewUsername] = useState('');
   const [newAccountPassword, setNewAccountPassword] = useState('');
-  const [selectedRole, setSelectedRole] = useState<'dismag' | 'pelatih' | 'superadmin'>('pelatih');
+  const [selectedRole, setSelectedRole] = useState<'dismag' | 'pelatih' | 'superadmin' | 'pimpinan'>('pelatih');
   const [isCreatingAccount, setIsCreatingAccount] = useState(false);
 
   useEffect(() => {
@@ -285,6 +285,7 @@ export default function SettingsPage() {
                 <option value="pelatih">Pelatih (Hanya Nilai & Absensi)</option>
                 <option value="dismag">Full Akses (Dismag)</option>
                 <option value="superadmin">Superadmin (Full Akses & Manajemen Akun)</option>
+                <option value="pimpinan">Pimpinan (Hanya Melihat, Tanpa Akses Edit)</option>
               </select>
             </div>
 

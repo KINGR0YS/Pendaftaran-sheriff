@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/components/Toast';
 import RoleGuard from '@/components/RoleGuard';
@@ -45,6 +45,7 @@ export default function ManageAccountsPage() {
   const [loading, setLoading] = useState(true);
   const [accessToken, setAccessToken] = useState('');
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [currentUserRole, setCurrentUserRole] = useState<string>('dismag');
 
   // Reset Password Modal states
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
@@ -190,16 +191,18 @@ export default function ManageAccountsPage() {
     }
   };
 
-  const filteredUsers = users.filter(u => 
-    u.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    u.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    u.role.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredUsers = useMemo(() => {
+    return users.filter(u => 
+      u.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      u.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      u.role.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [users, searchQuery]);
 
-  const superadmins = filteredUsers.filter(u => u.role === 'superadmin');
-  const dismags = filteredUsers.filter(u => u.role === 'dismag');
-  const pelatihs = filteredUsers.filter(u => u.role === 'pelatih');
-  const others = filteredUsers.filter(u => u.role !== 'superadmin' && u.role !== 'dismag' && u.role !== 'pelatih');
+  const superadmins = useMemo(() => filteredUsers.filter(u => u.role === 'superadmin'), [filteredUsers]);
+  const dismags = useMemo(() => filteredUsers.filter(u => u.role === 'dismag'), [filteredUsers]);
+  const pelatihs = useMemo(() => filteredUsers.filter(u => u.role === 'pelatih'), [filteredUsers]);
+  const others = useMemo(() => filteredUsers.filter(u => u.role !== 'superadmin' && u.role !== 'dismag' && u.role !== 'pelatih'), [filteredUsers]);
 
   const renderUserTable = (usersList: AccountUser[], roleTitle: string) => {
     if (usersList.length === 0) {
@@ -302,15 +305,7 @@ export default function ManageAccountsPage() {
         <div className="header-action-row">
           <h2 className="dashboard-title">
             Manajemen Akun Sistem
-            <span style={{ 
-              marginLeft: '0.75rem', 
-              fontSize: '0.8rem', 
-              background: 'var(--color-bg-card)', 
-              padding: '0.2rem 0.6rem', 
-              borderRadius: '12px', 
-              border: '1px solid var(--color-border-custom)', 
-              color: 'var(--color-text-secondary)' 
-            }}>
+            <span className="count-badge">
               {loading ? '...' : `${users.length} Akun`}
             </span>
           </h2>

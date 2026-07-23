@@ -1,12 +1,12 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/components/Toast';
 import Modal from '@/components/Modal';
 import { Eye, ShieldAlert, XCircle, CheckCircle2, Trash2, Inbox, ClipboardList } from 'lucide-react';
 import RoleGuard from '@/components/RoleGuard';
 import { logActivity } from '@/lib/activity-log';
-
+import { CardSkeleton } from '@/components/Skeleton';
 
 export default function ApplicationsPage() {
   const { showToast } = useToast();
@@ -37,6 +37,8 @@ export default function ApplicationsPage() {
     pengalaman_instansi: ''
   });
 
+  const [currentUserRole, setCurrentUserRole] = useState<string>('dismag');
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
@@ -47,15 +49,14 @@ export default function ApplicationsPage() {
           || user.email?.split('@')[0]
           || 'System Admin';
         setDisplayName(name);
+        const role = user.user_metadata?.role || 'dismag';
+        const normalizedRole = role === 'admin' ? 'dismag' : (role === 'trainer' ? 'pelatih' : role);
+        setCurrentUserRole(normalizedRole);
       }
     });
   }, []);
 
-  useEffect(() => {
-    loadApplications();
-  }, [statusFilter]);
-
-  async function loadApplications() {
+  const loadApplications = useCallback(async () => {
     setIsLoading(true);
     try {
       let query = supabase.from('applications').select('*');
@@ -70,9 +71,13 @@ export default function ApplicationsPage() {
     } finally {
       setIsLoading(false);
     }
-  }
+  }, [statusFilter, showToast]);
 
-  const handleApproveClick = (app: any) => {
+  useEffect(() => {
+    loadApplications();
+  }, [loadApplications]);
+
+  const handleApproveClick = useCallback((app: any) => {
     setAppToAssess(app);
     setAssessmentForm({
       etika: '50',
@@ -84,7 +89,7 @@ export default function ApplicationsPage() {
       pengalaman_instansi: ''
     });
     setIsAssessmentModalOpen(true);
-  };
+  }, []);
 
   const handleAssessmentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -212,15 +217,14 @@ export default function ApplicationsPage() {
       </div>
 
       {isLoading ? (
-        <div className="loading-container">
-          <div className="loading-spinner" />
-          <p>Memuat daftar pendaftaran...</p>
-        </div>
+        <CardSkeleton />
       ) : apps.length === 0 ? (
         <div className="empty-state">
-          <Inbox />
-          <h3>Tidak Ada Pendaftaran</h3>
-          <p>Tidak ada formulir pendaftaran ditemukan dengan status '{statusFilter}'.</p>
+          <div className="empty-state-icon">
+            <Inbox size={24} color="var(--color-text-muted)" />
+          </div>
+          <h3 className="empty-state-title">Tidak Ada Pendaftaran</h3>
+          <p className="empty-state-description">Tidak ada formulir pendaftaran ditemukan dengan status '{statusFilter}'.</p>
         </div>
       ) : (
         <div className="applications-list-wrapper">
@@ -262,18 +266,24 @@ export default function ApplicationsPage() {
         footer={
           selectedApp?.status === 'pending' ? (
             <>
-              <button className="btn btn-secondary" onClick={() => handleRejectClick(selectedApp)} disabled={isSubmittingApprove}>
-                Tolak Formulir <XCircle size={16} />
-              </button>
-              <button className="btn btn-success" onClick={() => handleApproveClick(selectedApp)} disabled={isSubmittingApprove}>
-                {isSubmittingApprove ? 'Memproses...' : 'Terima & Nilai'} <CheckCircle2 size={16} />
-              </button>
+              {currentUserRole !== 'pimpinan' && (
+                <>
+                  <button className="btn btn-secondary" onClick={() => handleRejectClick(selectedApp)} disabled={isSubmittingApprove}>
+                    Tolak Formulir <XCircle size={16} />
+                  </button>
+                  <button className="btn btn-success" onClick={() => handleApproveClick(selectedApp)} disabled={isSubmittingApprove}>
+                    {isSubmittingApprove ? 'Memproses...' : 'Terima & Nilai'} <CheckCircle2 size={16} />
+                  </button>
+                </>
+              )}
             </>
           ) : selectedApp?.status === 'approved' ? (
             <>
-              <button className="btn btn-danger" onClick={() => handleDelete(selectedApp)} style={{ marginRight: 'auto' }}>
-                <Trash2 size={16} /> Hapus Dari Pendataan
-              </button>
+              {currentUserRole !== 'pimpinan' && (
+                <button className="btn btn-danger" onClick={() => handleDelete(selectedApp)} style={{ marginRight: 'auto' }}>
+                  <Trash2 size={16} /> Hapus Dari Pendataan
+                </button>
+              )}
               <button className="btn btn-secondary" onClick={() => setIsModalOpen(false)}>Tutup</button>
             </>
           ) : (

@@ -1,24 +1,27 @@
 'use client';
-import { useEffect, useState, Fragment } from 'react';
+import { useEffect, useState, Fragment, useMemo, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/components/Toast';
 import Modal from '@/components/Modal';
-import { UserPlus, Eye, Search, Inbox, Trash2, FileText, ClipboardList } from 'lucide-react';
+import { UserPlus, Eye, Search, Inbox, Trash2, FileText, ClipboardList, Coins } from 'lucide-react';
 import RoleGuard from '@/components/RoleGuard';
 import { logActivity } from '@/lib/activity-log';
 import { getSystemSettings } from '@/lib/settings';
-
+import useDebounce from '@/app/hooks/useDebounce';
+import { TableSkeleton } from '@/components/Skeleton';
 
 export default function RosterPage() {
   const { showToast } = useToast();
   const [roster, setRoster] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearch = useDebounce(searchQuery, 300);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState<any>(null);
-  const [detailTab, setDetailTab] = useState<'form' | 'assessment'>('form');
+  const [detailTab, setDetailTab] = useState<'form' | 'assessment' | 'deposit'>('form');
   const [activeBatch, setActiveBatch] = useState('');
   const [adminEmail, setAdminEmail] = useState('System Admin');
+  const [currentUserRole, setCurrentUserRole] = useState<string>('dismag');
   const [isLoading, setIsLoading] = useState(true);
   const [sortBy, setSortBy] = useState<'batch' | 'name-asc' | 'name-desc'>('batch');
 
@@ -26,25 +29,21 @@ export default function RosterPage() {
     ic_name: '',
     steam_hex: '',
     ic_gender: 'Laki-laki',
-    ic_dob: ''
+    ic_phone: ''
   });
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user?.email) {
-        setAdminEmail(session.user.email);
+      if (session?.user) {
+        setAdminEmail(session.user.email || 'System Admin');
+        const role = session.user.user_metadata?.role || 'dismag';
+        const normalizedRole = role === 'admin' ? 'dismag' : (role === 'trainer' ? 'pelatih' : role);
+        setCurrentUserRole(normalizedRole);
       }
     });
   }, []);
 
-  useEffect(() => {
-    loadRoster();
-    getSystemSettings().then((settings) => {
-      setActiveBatch(settings.active_batch);
-    });
-  }, []);
-
-  async function loadRoster() {
+  const loadRoster = useCallback(async () => {
     setIsLoading(true);
     try {
       const { data, error } = await supabase
@@ -59,35 +58,48 @@ export default function RosterPage() {
     } finally {
       setIsLoading(false);
     }
-  }
+  }, [showToast]);
 
-  const filtered = roster.filter(member =>
-    member.ic_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    member.steam_hex?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  useEffect(() => {
+    loadRoster();
+    getSystemSettings().then((settings) => {
+      setActiveBatch(settings.active_batch);
+    });
+  }, [loadRoster]);
 
-  const sortedAndFiltered = [...filtered].sort((a, b) => {
-    if (sortBy === 'batch') {
-      const batchA = parseFloat(a.batch) || 0;
-      const batchB = parseFloat(b.batch) || 0;
-      if (batchB !== batchA) {
-        return batchB - batchA; // Newest batch first (descending)
+  const filtered = useMemo(() => {
+    return roster.filter(member =>
+      member.ic_name?.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+      member.steam_hex?.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+      member.phone_number?.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+      member.batch?.toString().toLowerCase().includes(debouncedSearch.toLowerCase())
+    );
+  }, [roster, debouncedSearch]);
+
+  const sortedAndFiltered = useMemo(() => {
+    return [...filtered].sort((a, b) => {
+      if (sortBy === 'batch') {
+        const batchA = parseFloat(a.batch) || 0;
+        const batchB = parseFloat(b.batch) || 0;
+        if (batchB !== batchA) {
+          return batchB - batchA; // Newest batch first (descending)
+        }
+        // If float values are equal, compare exact batch strings to prevent interleaving of any different textual batches
+        const batchStrA = a.batch || '';
+        const batchStrB = b.batch || '';
+        if (batchStrB !== batchStrA) {
+          return batchStrB.localeCompare(batchStrA);
+        }
+        return (a.ic_name || '').localeCompare(b.ic_name || '');
+      } else if (sortBy === 'name-asc') {
+        return (a.ic_name || '').localeCompare(b.ic_name || '');
+      } else {
+        return (b.ic_name || '').localeCompare(a.ic_name || '');
       }
-      // If float values are equal, compare exact batch strings to prevent interleaving of any different textual batches
-      const batchStrA = a.batch || '';
-      const batchStrB = b.batch || '';
-      if (batchStrB !== batchStrA) {
-        return batchStrB.localeCompare(batchStrA);
-      }
-      return (a.ic_name || '').localeCompare(b.ic_name || '');
-    } else if (sortBy === 'name-asc') {
-      return (a.ic_name || '').localeCompare(b.ic_name || '');
-    } else {
-      return (b.ic_name || '').localeCompare(a.ic_name || '');
-    }
-  });
+    });
+  }, [filtered, sortBy]);
 
-  const handleDeleteMember = async (id: string, name: string) => {
+  const handleDeleteMember = useCallback(async (id: string, name: string) => {
     if (!window.confirm(`Apakah Anda yakin ingin menghapus data anggota ${name}? Tindakan ini tidak dapat dibatalkan.`)) {
       return;
     }
@@ -107,7 +119,7 @@ export default function RosterPage() {
     } catch (err: any) {
       showToast(`Gagal menghapus data: ${err.message}`, 'error');
     }
-  };
+  }, [loadRoster, showToast]);
 
   const handleAddMember = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -115,7 +127,7 @@ export default function RosterPage() {
       ic_name: form.ic_name,
       steam_hex: form.steam_hex,
       ic_gender: form.ic_gender,
-      ic_dob: form.ic_dob,
+      phone_number: form.ic_phone,
       ooc_name: 'Manual Entry',
       passport_name_ooc: 'Manual Entry',
       ooc_age: 18,
@@ -125,7 +137,6 @@ export default function RosterPage() {
       rp_experience_ooc: 'Manual Entry',
       obligations_other_cities: 'Manual Entry',
       ic_age: 18,
-      phone_number: 'Manual Entry',
       origin: '-',
       experience: 'Manual Entry',
       criminal_record: 'Manual Entry',
@@ -149,14 +160,14 @@ export default function RosterPage() {
       logActivity(`Anggota baru terdaftar manual: <strong>${form.ic_name}</strong>`);
       showToast('Anggota berhasil didaftarkan.', 'success');
       setIsAddModalOpen(false);
-      setForm({ ic_name: '', steam_hex: '', ic_gender: 'Laki-laki', ic_dob: '' });
+      setForm({ ic_name: '', steam_hex: '', ic_gender: 'Laki-laki', ic_phone: '' });
       loadRoster();
     } catch (err: any) {
       showToast(`Gagal memproses data: ${err.message}`, 'error');
     }
   };
 
-  const updateStatus = async (id: string, field: string, value: string) => {
+  const updateStatus = useCallback(async (id: string, field: string, value: string) => {
     try {
       const { error } = await supabase
         .from('applications')
@@ -169,19 +180,19 @@ export default function RosterPage() {
     } catch (err: any) {
       showToast(`Gagal memperbarui status: ${err.message}`, 'error');
     }
-  };
+  }, [showToast]);
 
   return (
     <RoleGuard allowedRoles={['dismag']}>
     <div>
       <div className="header-action-row">
         <h2 className="dashboard-title">
-          Direktori Probatus Roxwood
+          Pendataan probatus
           <span className="count-badge">
             {isLoading ? '...' : `${roster.length} Probatus`}
           </span>
         </h2>
-        <button className="btn btn-sm btn-success" onClick={() => setIsAddModalOpen(true)}>
+        <button className="btn btn-sm btn-success" onClick={() => setIsAddModalOpen(true)} style={{ display: currentUserRole === 'pimpinan' ? 'none' : 'inline-flex' }}>
           <UserPlus size={14} /> Tambah Anggota Manual
         </button>
       </div>
@@ -191,7 +202,7 @@ export default function RosterPage() {
           <Search size={16} />
           <input
             type="text"
-            placeholder="Cari berdasarkan nama/callsign..."
+            placeholder="cari berdasarkan nama/steam hex/no. telp/angkatan..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -212,15 +223,14 @@ export default function RosterPage() {
       </div>
 
       {isLoading ? (
-        <div className="loading-container">
-          <div className="loading-spinner" />
-          <p>Memuat data...</p>
-        </div>
+        <TableSkeleton rows={6} columns={10} />
       ) : filtered.length === 0 ? (
         <div className="empty-state">
-          <Inbox />
-          <h3>Tidak Ada Probatus</h3>
-          <p>
+          <div className="empty-state-icon">
+            <Inbox size={24} color="var(--color-text-muted)" />
+          </div>
+          <h3 className="empty-state-title">Tidak Ada Probatus</h3>
+          <p className="empty-state-description">
             {roster.length === 0
               ? 'Belum ada anggota yang terdaftar/diterima.'
               : 'Tidak ditemukan anggota yang cocok dengan pencarian Anda.'}
@@ -234,11 +244,12 @@ export default function RosterPage() {
                 <th>Nama Karakter</th>
                 <th>Steam HEX Code</th>
                 <th>Jenis Kelamin</th>
-                <th>Tanggal Lahir IC</th>
+                <th>Nomor Telepon IC</th>
                 <th>Angkatan</th>
                 <th>Diterima Oleh</th>
                 <th>Status Lencana</th>
                 <th>Status Pelatihan</th>
+                <th>Deposit</th>
                 <th>Aksi</th>
               </tr>
             </thead>
@@ -253,7 +264,7 @@ export default function RosterPage() {
                     <Fragment key={member.id}>
                       {showDivider && (
                         <tr style={{ background: 'rgba(212, 175, 55, 0.04)', borderLeft: '3px solid var(--color-gold)' }}>
-                          <td colSpan={9} style={{ padding: '0.6rem 1rem', color: 'var(--color-gold)', fontWeight: 800, fontSize: '0.75rem', letterSpacing: '2px', textTransform: 'uppercase' }}>
+                          <td colSpan={10} style={{ padding: '0.6rem 1rem', color: 'var(--color-gold)', fontWeight: 800, fontSize: '0.75rem', letterSpacing: '2px', textTransform: 'uppercase' }}>
                             ⚡ ANGKATAN {member.batch || '1'}
                           </td>
                         </tr>
@@ -269,7 +280,7 @@ export default function RosterPage() {
                         </td>
                         <td><code>{member.steam_hex || '-'}</code></td>
                         <td>{member.ic_gender || '-'}</td>
-                        <td>{member.ic_dob || '-'}</td>
+                        <td>{member.phone_number || '-'}</td>
                         <td>Angkatan {member.batch || '1'}</td>
                         <td>
                           <span className="processed-by-badge" title={member.processed_by || 'Admin'}>
@@ -282,6 +293,7 @@ export default function RosterPage() {
                             onChange={(e) => updateStatus(member.id, 'badge_status', e.target.value)}
                             className="filter-select"
                             style={{ fontSize: '0.75rem', padding: '0.4rem 0.6rem' }}
+                            disabled={currentUserRole === 'pimpinan'}
                           >
                             <option value="">-- Pilih Status --</option>
                             <option value="lencana aktif">Lencana Aktif</option>
@@ -294,11 +306,30 @@ export default function RosterPage() {
                             onChange={(e) => updateStatus(member.id, 'training_status', e.target.value)}
                             className="filter-select"
                             style={{ fontSize: '0.75rem', padding: '0.4rem 0.6rem' }}
+                            disabled={currentUserRole === 'pimpinan'}
                           >
                             <option value="">-- Pilih Status --</option>
                             <option value="sedang dalam pelatihan">Sedang Pelatihan</option>
                             <option value="lulus">Lulus</option>
                             <option value="tidak lulus">Tidak Lulus</option>
+                          </select>
+                        </td>
+                        <td>
+                          <select
+                            value={member.deposit_status || ''}
+                            onChange={(e) => updateStatus(member.id, 'deposit_status', e.target.value)}
+                            className="filter-select"
+                            style={{
+                              fontSize: '0.75rem',
+                              padding: '0.4rem 0.6rem',
+                              color: member.deposit_status === 'sudah dikembalikan' ? 'var(--color-success)' : 'var(--color-warning)',
+                              fontWeight: 600
+                            }}
+                            disabled={currentUserRole === 'pimpinan'}
+                          >
+                            <option value="">-- Pilih Status --</option>
+                            <option value="sudah deposit">💰 Sudah Deposit</option>
+                            <option value="sudah dikembalikan">🔄 Sudah Dikembalikan</option>
                           </select>
                         </td>
                         <td>
@@ -360,13 +391,14 @@ export default function RosterPage() {
               </select>
             </div>
             <div className="form-group">
-              <label htmlFor="member-ic-dob">Tanggal Lahir (IC) <span className="required">*</span></label>
+              <label htmlFor="member-ic-phone">Nomor Telepon (IC) <span className="required">*</span></label>
               <input
-                type="date"
-                id="member-ic-dob"
-                value={form.ic_dob}
-                onChange={(e) => setForm(prev => ({ ...prev, ic_dob: e.target.value }))}
+                type="tel"
+                id="member-ic-phone"
+                value={form.ic_phone}
+                onChange={(e) => setForm(prev => ({ ...prev, ic_phone: e.target.value }))}
                 required
+                placeholder="Contoh: 08123456789"
               />
             </div>
           </div>
@@ -385,13 +417,15 @@ export default function RosterPage() {
         wide
         footer={
           <>
-            <button 
-              className="btn btn-danger" 
-              onClick={() => selectedMember && handleDeleteMember(selectedMember.id, selectedMember.ic_name)}
-              style={{ marginRight: 'auto', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
-            >
-              <Trash2 size={14} /> Hapus Data
-            </button>
+            {currentUserRole !== 'pimpinan' && (
+              <button 
+                className="btn btn-danger" 
+                onClick={() => selectedMember && handleDeleteMember(selectedMember.id, selectedMember.ic_name)}
+                style={{ marginRight: 'auto', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+              >
+                <Trash2 size={14} /> Hapus Data
+              </button>
+            )}
             <button className="btn btn-secondary" onClick={() => { setIsDetailModalOpen(false); setDetailTab('form'); }}>Tutup</button>
           </>
         }
@@ -412,6 +446,12 @@ export default function RosterPage() {
               >
                 <ClipboardList size={14} /> Penilaian Interview
               </button>
+              <button
+                className={`detail-tab ${detailTab === 'deposit' ? 'active' : ''}`}
+                onClick={() => setDetailTab('deposit')}
+              >
+                <Coins size={14} /> Informasi Deposit
+              </button>
             </div>
 
             {/* Tab Content: Form Detail */}
@@ -421,6 +461,7 @@ export default function RosterPage() {
                   <h4>Informasi Out Of Character (OOC)</h4>
                   <div className="detail-row-grid">
                     <div className="detail-label-value"><span>Nama Asli</span><span>{selectedMember.ooc_name}</span></div>
+                    <div className="detail-label-value"><span>Nama KTP/Paspor</span><span>{selectedMember.passport_name_ooc || '-'}</span></div>
                     <div className="detail-label-value">
                       <span>Umur</span>
                       <span>
@@ -432,9 +473,12 @@ export default function RosterPage() {
                         )}
                       </span>
                     </div>
+                    <div className="detail-label-value"><span>Jenis Kelamin</span><span>{selectedMember.ooc_gender || '-'}</span></div>
                     <div className="detail-label-value"><span>Discord Username</span><span>{selectedMember.discord_id}</span></div>
                     <div className="detail-label-value"><span>Steam Hex</span><span><code>{selectedMember.steam_hex}</code></span></div>
                     <div className="detail-label-value"><span>Lama RP</span><span>{selectedMember.playtime}</span></div>
+                    <div className="detail-label-value"><span>Pengalaman RP</span><span>{selectedMember.rp_experience_ooc || '-'}</span></div>
+                    <div className="detail-label-value"><span>Keterikatan Kota Lain</span><span>{selectedMember.obligations_other_cities || '-'}</span></div>
                     <div className="detail-label-value"><span>Angkatan</span><span>Angkatan {selectedMember.batch || '1'}</span></div>
                   </div>
                 </div>
@@ -453,11 +497,15 @@ export default function RosterPage() {
                         )}
                       </span>
                     </div>
+                    <div className="detail-label-value"><span>Jenis Kelamin (IC)</span><span>{selectedMember.ic_gender || '-'}</span></div>
+                    <div className="detail-label-value"><span>Tanggal Lahir (IC)</span><span>{selectedMember.ic_dob || '-'}</span></div>
                     <div className="detail-label-value"><span>Nomor HP</span><span>{selectedMember.phone_number}</span></div>
+                    <div className="detail-label-value"><span>Pengalaman IC</span><span>{selectedMember.experience || '-'}</span></div>
+                    <div className="detail-label-value"><span>Asal Kota/Negara</span><span>{selectedMember.origin || '-'}</span></div>
                   </div>
                 </div>
                 <div className="modal-detail-section">
-                  <h4>Kualifikasi</h4>
+                  <h4>Kualifikasi &amp; Motivasi</h4>
                   <div className="modal-question-box">
                     <p>Pernahkah Anda terlibat kasus kriminal?</p>
                     <p>{selectedMember.criminal_record || '-'}</p>
@@ -479,10 +527,18 @@ export default function RosterPage() {
                     <p>{selectedMember.active_hours || '-'}</p>
                   </div>
                 </div>
+                <div className="modal-detail-section">
+                  <h4>Pengetahuan &amp; Skenario</h4>
+                  <div className="detail-row-grid">
+                    <div className="detail-label-value"><span>Chain of Command</span><span>{selectedMember.chain_of_command || '-'}</span></div>
+                    <div className="detail-label-value"><span>Skenario Use of Force</span><span>{selectedMember.scenario_use_of_force || '-'}</span></div>
+                  </div>
+                </div>
                 <div className="decision-box" style={{ background: 'rgba(16, 185, 129, 0.05)', border: '1px solid rgba(16, 185, 129, 0.2)', padding: '1rem', borderRadius: '8px', marginTop: '1rem' }}>
                   <h4 style={{ color: 'var(--color-success)', fontSize: '0.85rem', marginBottom: '0.25rem' }}>Status Formulir: Diterima</h4>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
-                    Diproses oleh: {selectedMember.processed_by || 'Admin'}
+                  <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
+                    <span>Diproses oleh: {selectedMember.processed_by || 'Admin'}</span>
+                    <span>Terdaftar: {selectedMember.created_at ? new Date(selectedMember.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-'}</span>
                   </div>
                 </div>
               </div>
@@ -592,6 +648,77 @@ export default function RosterPage() {
                     <p>Anggota ini belum memiliki penilaian interview.</p>
                   </div>
                 )}
+              </div>
+            )}
+
+            {/* TAB Content: Deposit */}
+            {detailTab === 'deposit' && (
+              <div>
+                <div className="modal-detail-section">
+                  <h4>Status Deposit Probatus</h4>
+                  <div className="detail-row-grid">
+                    <div className="detail-label-value"><span>Nama Karakter</span><span><strong>{selectedMember.ic_name}</strong></span></div>
+                    <div className="detail-label-value">
+                      <span>Status Deposit</span>
+                      <span>
+                        <select
+                          value={selectedMember.deposit_status || ''}
+                          onChange={(e) => { updateStatus(selectedMember.id, 'deposit_status', e.target.value); setSelectedMember(prev => ({ ...prev, deposit_status: e.target.value })); }}
+                          className="filter-select"
+                          style={{
+                            fontSize: '0.85rem',
+                            padding: '0.4rem 0.6rem',
+                            color: selectedMember.deposit_status === 'sudah dikembalikan' ? 'var(--color-success)' : 'var(--color-warning)',
+                            fontWeight: 600
+                          }}
+                        >
+                          <option value="">-- Pilih Status --</option>
+                          <option value="sudah deposit">💰 Sudah Deposit</option>
+                          <option value="sudah dikembalikan">🔄 Sudah Dikembalikan</option>
+                        </select>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="modal-detail-section">
+                  <h4>Riwayat Deposit</h4>
+                  <div style={{ background: 'rgba(255,255,255,0.02)', borderRadius: '8px', border: '1px solid var(--color-border-custom)', padding: '1rem' }}>
+                    <div className="detail-row-grid">
+                      <div className="detail-label-value">
+                        <span>Status Saat Ini</span>
+                        <span style={{
+                          fontWeight: 700,
+                          fontSize: '0.9rem',
+                          color: selectedMember.deposit_status === 'sudah dikembalikan' ? 'var(--color-success)' : 'var(--color-warning)'
+                        }}>
+                          {selectedMember.deposit_status === 'sudah dikembalikan' ? '🔄 Sudah Dikembalikan' : selectedMember.deposit_status === 'sudah deposit' ? '💰 Sudah Deposit' : '—'}
+                        </span>
+                      </div>
+                      <div className="detail-label-value">
+                        <span>Angkatan</span>
+                        <span>Angkatan {selectedMember.batch || '1'}</span>
+                      </div>
+                    </div>
+                    <div style={{ marginTop: '1rem', padding: '0.75rem', background: 'rgba(234, 179, 8, 0.05)', borderRadius: '8px', border: '1px solid rgba(234, 179, 8, 0.15)' }}>
+                      <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', margin: 0, lineHeight: 1.6 }}>
+                        <strong style={{ color: 'var(--color-warning)' }}>Catatan:</strong> Deposit adalah uang jaminan yang dibayarkan saat probatus memulai pelatihan.
+                        Deposit akan dikembalikan setelah probatus dinyatakan <strong>lulus</strong> dari masa pelatihan.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="modal-detail-section">
+                  <h4>Informasi Anggota</h4>
+                  <div className="detail-row-grid">
+                    <div className="detail-label-value"><span>Nama OOC</span><span>{selectedMember.ooc_name}</span></div>
+                    <div className="detail-label-value"><span>Nama KTP/Paspor</span><span>{selectedMember.passport_name_ooc || '-'}</span></div>
+                    <div className="detail-label-value"><span>Discord ID</span><span>{selectedMember.discord_id}</span></div>
+                    <div className="detail-label-value"><span>Steam HEX</span><span><code>{selectedMember.steam_hex}</code></span></div>
+                    <div className="detail-label-value"><span>Angkatan</span><span>Angkatan {selectedMember.batch || '1'}</span></div>
+                  </div>
+                </div>
               </div>
             )}
           </div>

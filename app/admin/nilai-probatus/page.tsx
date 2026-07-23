@@ -1,16 +1,21 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/components/Toast';
 import Modal from '@/components/Modal';
 import { Search, Inbox, Eye } from 'lucide-react';
 import { logActivity } from '@/lib/activity-log';
+import RoleGuard from '@/components/RoleGuard';
+import useDebounce from '@/app/hooks/useDebounce';
+import { TableSkeleton } from '@/components/Skeleton';
 
 export default function NilaiProbatusPage() {
   const { showToast } = useToast();
   const [roster, setRoster] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearch = useDebounce(searchQuery, 300);
   const [adminEmail, setAdminEmail] = useState('System Admin');
+  const [currentUserRole, setCurrentUserRole] = useState<string>('dismag');
   const [isLoading, setIsLoading] = useState(true);
 
   // States untuk Nilai Probatus
@@ -27,7 +32,7 @@ export default function NilaiProbatusPage() {
 
   // State untuk Nama Pelatih/Penilai input manual
   const [evaluatorName, setEvaluatorName] = useState('');
-  
+
   // State untuk rekap absensi harian
   const [attendanceSummaryMap, setAttendanceSummaryMap] = useState<Record<string, { Hadir: number; Izin: number; Terlambat: number; Alfa: number }>>({});
 
@@ -35,6 +40,11 @@ export default function NilaiProbatusPage() {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user?.email) {
         setAdminEmail(session.user.email);
+      }
+      if (session?.user) {
+        const role = session.user.user_metadata?.role || 'dismag';
+        const normalizedRole = role === 'admin' ? 'dismag' : (role === 'trainer' ? 'pelatih' : role);
+        setCurrentUserRole(normalizedRole);
       }
     });
   }, []);
@@ -91,10 +101,12 @@ export default function NilaiProbatusPage() {
     }
   }
 
-  const filtered = roster.filter(member =>
-    member.ic_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    member.steam_hex?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filtered = useMemo(() => {
+    return roster.filter(member =>
+      member.ic_name?.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+      member.steam_hex?.toLowerCase().includes(debouncedSearch.toLowerCase())
+    );
+  }, [roster, debouncedSearch]);
 
   const openEvaluationModal = (member: any, type: 'tambah' | 'kurangi') => {
     setEvalTargetMember(member);
@@ -176,6 +188,7 @@ export default function NilaiProbatusPage() {
   };
 
   return (
+    <RoleGuard allowedRoles={['dismag', 'pelatih']}>
     <div>
       <div className="header-action-row">
         <h2 className="dashboard-title">
@@ -197,15 +210,14 @@ export default function NilaiProbatusPage() {
       </div>
 
       {isLoading ? (
-        <div className="loading-container">
-          <div className="loading-spinner" />
-          <p>Memuat data...</p>
-        </div>
+        <TableSkeleton rows={6} columns={8} />
       ) : filtered.length === 0 ? (
         <div className="empty-state">
-          <Inbox />
-          <h3>Tidak Ada Anggota</h3>
-          <p>
+          <div className="empty-state-icon">
+            <Inbox size={24} color="var(--color-text-muted)" />
+          </div>
+          <h3 className="empty-state-title">Tidak Ada Anggota</h3>
+          <p className="empty-state-description">
             {roster.length === 0
               ? 'Tidak ada anggota yang sedang dalam status pelatihan.'
               : 'Tidak ditemukan anggota pelatihan yang cocok dengan pencarian Anda.'}
@@ -238,20 +250,24 @@ export default function NilaiProbatusPage() {
                   </td>
                   <td style={{ textAlign: 'center' }}>
                     <div style={{ display: 'inline-flex', gap: '0.5rem', justifyContent: 'center' }}>
-                      <button 
-                        className="btn btn-sm btn-success" 
-                        onClick={() => openEvaluationModal(member, 'tambah')}
-                        style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', padding: '0.35rem 0.75rem' }}
-                      >
-                        + Tambah
-                      </button>
-                      <button 
-                        className="btn btn-sm btn-danger" 
-                        onClick={() => openEvaluationModal(member, 'kurangi')}
-                        style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', padding: '0.35rem 0.75rem' }}
-                      >
-                        - Kurang
-                      </button>
+                      {currentUserRole !== 'pimpinan' && (
+                        <>
+                          <button 
+                            className="btn btn-sm btn-success" 
+                            onClick={() => openEvaluationModal(member, 'tambah')}
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', padding: '0.35rem 0.75rem' }}
+                          >
+                            + Tambah
+                          </button>
+                          <button 
+                            className="btn btn-sm btn-danger" 
+                            onClick={() => openEvaluationModal(member, 'kurangi')}
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', padding: '0.35rem 0.75rem' }}
+                          >
+                            - Kurang
+                          </button>
+                        </>
+                      )}
                     </div>
                   </td>
                   <td style={{ textAlign: 'center', fontSize: '0.75rem' }}>
@@ -420,5 +436,6 @@ export default function NilaiProbatusPage() {
         </div>
       </Modal>
     </div>
+    </RoleGuard>
   );
 }

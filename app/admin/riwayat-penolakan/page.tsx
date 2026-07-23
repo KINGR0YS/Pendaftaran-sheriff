@@ -1,16 +1,18 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/components/Toast';
 import Modal from '@/components/Modal';
 import { Eye, Inbox, Search } from 'lucide-react';
 import RoleGuard from '@/components/RoleGuard';
-
+import useDebounce from '@/app/hooks/useDebounce';
+import { TableSkeleton } from '@/components/Skeleton';
 
 export default function RejectedPage() {
   const { showToast } = useToast();
   const [rejected, setRejected] = useState<any[]>([]);
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebounce(search, 300);
   const [selectedApp, setSelectedApp] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -34,11 +36,13 @@ export default function RejectedPage() {
     }
   }
 
-  const filtered = rejected.filter(app =>
-    app.ic_name?.toLowerCase().includes(search.toLowerCase()) ||
-    app.ooc_name?.toLowerCase().includes(search.toLowerCase()) ||
-    app.rejection_reason?.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = useMemo(() => {
+    return rejected.filter(app =>
+      app.ic_name?.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+      app.ooc_name?.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+      app.rejection_reason?.toLowerCase().includes(debouncedSearch.toLowerCase())
+    );
+  }, [rejected, debouncedSearch]);
 
   return (
     <RoleGuard allowedRoles={['dismag']}>
@@ -46,7 +50,7 @@ export default function RejectedPage() {
       <div className="header-action-row">
         <h2 className="dashboard-title">
           Riwayat Formulir Ditolak
-          <span style={{ marginLeft: '0.75rem', fontSize: '0.8rem', background: 'var(--color-bg-card)', padding: '0.2rem 0.6rem', borderRadius: '12px', border: '1px solid var(--color-border-custom)', color: 'var(--color-text-secondary)' }}>
+          <span className="count-badge">
             {isLoading ? '...' : `${rejected.length} formulir`}
           </span>
         </h2>
@@ -64,15 +68,14 @@ export default function RejectedPage() {
       </div>
 
       {isLoading ? (
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '300px', gap: '1rem' }}>
-          <div className="loading-spinner" />
-          <p style={{ color: 'var(--color-text-muted)', fontSize: '0.85rem' }}>Memuat riwayat penolakan...</p>
-        </div>
+        <TableSkeleton rows={5} columns={7} />
       ) : filtered.length === 0 ? (
         <div className="empty-state">
-          <Inbox />
-          <h3>Tidak Ada Riwayat</h3>
-          <p>
+          <div className="empty-state-icon">
+            <Inbox size={24} color="var(--color-text-muted)" />
+          </div>
+          <h3 className="empty-state-title">Tidak Ada Riwayat</h3>
+          <p className="empty-state-description">
             {rejected.length === 0
               ? 'Belum ada formulir pendaftaran yang ditolak.'
               : 'Tidak ditemukan riwayat penolakan yang cocok dengan pencarian Anda.'}

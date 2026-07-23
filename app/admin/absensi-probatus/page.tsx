@@ -1,15 +1,18 @@
 ﻿'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/components/Toast';
 import { Search, Inbox, Calendar } from 'lucide-react';
 import { logActivity } from '@/lib/activity-log';
 import { getDateSetting, updateSystemSetting } from '@/lib/settings';
+import useDebounce from '@/app/hooks/useDebounce';
+import { TableSkeleton } from '@/components/Skeleton';
 
 export default function AbsensiProbatusPage() {
   const { showToast } = useToast();
   const [roster, setRoster] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearch = useDebounce(searchQuery, 300);
   const [isLoading, setIsLoading] = useState(true);
 
   // States untuk Absensi
@@ -209,9 +212,11 @@ export default function AbsensiProbatusPage() {
     return grandTotal;
   };
 
-  const filtered = roster.filter(member =>
-    member.ic_name?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filtered = useMemo(() => {
+    return roster.filter(member =>
+      member.ic_name?.toLowerCase().includes(debouncedSearch.toLowerCase())
+    );
+  }, [roster, debouncedSearch]);
 
 
 
@@ -237,6 +242,10 @@ export default function AbsensiProbatusPage() {
                 const newDate = e.target.value;
                 if (currentUserRole === 'pelatih') {
                   showToast('Hanya Dismag & Superadmin yang dapat mengubah tanggal mulai.', 'error');
+                  return;
+                }
+                if (currentUserRole === 'pimpinan') {
+                  // Read-only role cannot change date
                   return;
                 }
                 setPendingDate(newDate);
@@ -309,15 +318,14 @@ export default function AbsensiProbatusPage() {
       </div>
 
       {!startDate || isLoading ? (
-        <div className="loading-container">
-          <div className="loading-spinner" />
-          <p>Memuat data absensi...</p>
-        </div>
+        <TableSkeleton rows={5} columns={8} />
       ) : filtered.length === 0 ? (
-        <div className="empty-section">
-          <Inbox size={48} />
-          <h3>Tidak Ada Siswa Pelatihan</h3>
-          <p>
+        <div className="empty-state">
+          <div className="empty-state-icon">
+            <Inbox size={24} color="var(--color-text-muted)" />
+          </div>
+          <h3 className="empty-state-title">Tidak Ada Siswa Pelatihan</h3>
+          <p className="empty-state-description">
             {roster.length === 0
               ? 'Belum ada anggota yang terdaftar dengan status pelatihan.'
               : 'Tidak ditemukan anggota yang cocok dengan pencarian.'}
@@ -377,6 +385,7 @@ export default function AbsensiProbatusPage() {
                           value={val}
                           onChange={(e) => handleSaveAttendance(member.id, dateStr, e.target.value)}
                           className={getSelectClass(val)}
+                          disabled={currentUserRole === 'pimpinan'}
                         >
                           <option value="">-</option>
                           <option value="HADIR">HADIR</option>

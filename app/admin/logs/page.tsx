@@ -1,10 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/components/Toast';
 import { Search, Inbox, ShieldAlert, Check, RefreshCw, Trash2, History } from 'lucide-react';
 import RoleGuard from '@/components/RoleGuard';
+import useDebounce from '@/app/hooks/useDebounce';
+import { TableSkeleton } from '@/components/Skeleton';
 
 interface ActivityLog {
   id: string;
@@ -18,23 +20,13 @@ export default function LogsPage() {
   const { showToast } = useToast();
   const [logs, setLogs] = useState<ActivityLog[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearch = useDebounce(searchQuery, 300);
   const [roleFilter, setRoleFilter] = useState('all');
   const [isLoading, setIsLoading] = useState(true);
   const [dbError, setDbError] = useState<string | null>(null);
   const [currentUserRole, setCurrentUserRole] = useState<string>('dismag');
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        const role = session.user.user_metadata?.role || 'dismag';
-        const normalizedRole = role === 'admin' ? 'dismag' : (role === 'trainer' ? 'pelatih' : role);
-        setCurrentUserRole(normalizedRole);
-      }
-    });
-    loadLogs();
-  }, []);
-
-  async function loadLogs() {
+  const loadLogs = useCallback(async () => {
     setIsLoading(true);
     setDbError(null);
     try {
@@ -58,9 +50,20 @@ export default function LogsPage() {
     } finally {
       setIsLoading(false);
     }
-  }
+  }, [showToast]);
 
-  const handleClearLogs = async () => {
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        const role = session.user.user_metadata?.role || 'dismag';
+        const normalizedRole = role === 'admin' ? 'dismag' : (role === 'trainer' ? 'pelatih' : role);
+        setCurrentUserRole(normalizedRole);
+      }
+    });
+    loadLogs();
+  }, [loadLogs]);
+
+  const handleClearLogs = useCallback(async () => {
     if (currentUserRole !== 'superadmin') {
       showToast('Hanya Superadmin yang dapat menghapus log aktivitas.', 'error');
       return;
@@ -80,17 +83,19 @@ export default function LogsPage() {
       showToast('Gagal menghapus log: ' + err.message, 'error');
       setIsLoading(false);
     }
-  };
+  }, [currentUserRole, loadLogs, showToast]);
 
-  const filteredLogs = logs.filter(log => {
-    const matchesSearch = 
-      log.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      log.action.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchesRole = roleFilter === 'all' || log.role === roleFilter;
-    
-    return matchesSearch && matchesRole;
-  });
+  const filteredLogs = useMemo(() => {
+    return logs.filter(log => {
+      const matchesSearch = 
+        log.username.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+        log.action.toLowerCase().includes(debouncedSearch.toLowerCase());
+      
+      const matchesRole = roleFilter === 'all' || log.role === roleFilter;
+      
+      return matchesSearch && matchesRole;
+    });
+  }, [logs, debouncedSearch, roleFilter]);
 
   const getRoleBadgeClass = (role: string) => {
     return `badge-role ${role}`;
@@ -182,15 +187,14 @@ ALTER TABLE activity_logs DISABLE ROW LEVEL SECURITY;`}
         </div>
 
         {isLoading ? (
-          <div className="loading-container">
-            <div className="loading-spinner" />
-            <p>Memuat log aktivitas...</p>
-          </div>
+          <TableSkeleton rows={8} columns={4} />
         ) : filteredLogs.length === 0 ? (
           <div className="empty-state">
-            <Inbox />
-            <h3>Tidak Ada Log Aktivitas</h3>
-            <p>Belum ada aktivitas yang tercatat atau cocok dengan filter Anda.</p>
+            <div className="empty-state-icon">
+              <Inbox size={24} color="var(--color-text-muted)" />
+            </div>
+            <h3 className="empty-state-title">Tidak Ada Log Aktivitas</h3>
+            <p className="empty-state-description">Belum ada aktivitas yang tercatat atau cocok dengan filter Anda.</p>
           </div>
         ) : (
           <div className="table-wrapper">
