@@ -663,7 +663,7 @@ export default function RosterPage() {
                       <span>
                         <select
                           value={selectedMember.deposit_status || ''}
-                          onChange={(e) => { updateStatus(selectedMember.id, 'deposit_status', e.target.value); setSelectedMember(prev => ({ ...prev, deposit_status: e.target.value })); }}
+                          onChange={(e) => { updateStatus(selectedMember.id, 'deposit_status', e.target.value); setSelectedMember((prev: any) => ({ ...prev, deposit_status: e.target.value })); }}
                           className="filter-select"
                           style={{
                             fontSize: '0.85rem',
